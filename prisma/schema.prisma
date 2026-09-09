@@ -24,28 +24,39 @@ enum StatusOrcamento {
   REJEITADO
 }
 
+enum StatusCliente {
+  ATIVO
+  INATIVO
+  BLOQUEADO
+}
+
 model Cliente {
-  id        String    @id @default(uuid())
-  nome      String
-  cpfCnpj   String    @unique
-  email     String
-  telefone  String
-  veiculos  ClienteVeiculo[]
-  ordens    OrdemDeServico[]
-  criadoEm  DateTime  @default(now())
-  atualizadoEm DateTime @updatedAt
+  id           String           @id @default(uuid())
+  nome         String
+  cpfCnpj      String           @unique
+  email        String
+  telefone     String
+  status       StatusCliente    @default(ATIVO)
+  veiculos     ClienteVeiculo[]
+  ordens       OrdemDeServico[]
+  criadoEm     DateTime         @default(now())
+  atualizadoEm DateTime         @updatedAt
+
+  @@index([status])
 }
 
 model Veiculo {
-  id        String   @id @default(uuid())
-  placa     String
-  marca     String
-  modelo    String
-  ano       Int
-  clientes  ClienteVeiculo[]
-  ordens    OrdemDeServico[]
-  criadoEm  DateTime @default(now())
-  atualizadoEm DateTime @updatedAt
+  id           String           @id @default(uuid())
+  placa        String
+  marca        String
+  modelo       String
+  ano          Int
+  clientes     ClienteVeiculo[]
+  ordens       OrdemDeServico[]
+  criadoEm     DateTime         @default(now())
+  atualizadoEm DateTime         @updatedAt
+
+  @@index([placa])
 }
 
 model ClienteVeiculo {
@@ -60,70 +71,80 @@ model ClienteVeiculo {
 }
 
 model OrdemDeServico {
-  id                         String              @id @default(uuid())
-  numeroOs                   String              @unique
-  clienteId                  String
-  veiculoId                  String
-  descricaoProblemaCliente   String
-  problemaIdentificado       String?
-  status                     StatusOrdemServico
-  dataCriacao                DateTime            @default(now())
-  dataFinalizacao            DateTime?
-  cliente                    Cliente             @relation(fields: [clienteId], references: [id])
-  veiculo                    Veiculo             @relation(fields: [veiculoId], references: [id])
-  historico                  HistoricoStatusOS[]
-  orcamento                  Orcamento?
-  criadoEm                   DateTime            @default(now())
-  atualizadoEm               DateTime            @updatedAt
+  id                       String              @id @default(uuid())
+  numeroOs                 String              @unique
+  clienteId                String
+  veiculoId                String
+  descricaoProblemaCliente String
+  problemaIdentificado     String?
+  status                   StatusOrdemServico
+  dataCriacao              DateTime            @default(now())
+  dataFinalizacao          DateTime?
+  cliente                  Cliente             @relation(fields: [clienteId], references: [id])
+  veiculo                  Veiculo             @relation(fields: [veiculoId], references: [id])
+  historico                HistoricoStatusOS[]
+  orcamento                Orcamento?
+  criadoEm                 DateTime            @default(now())
+  atualizadoEm             DateTime            @updatedAt
+
+  @@index([status, dataCriacao])
+  @@index([clienteId, dataCriacao])
 }
 
 model HistoricoStatusOS {
-  id              String             @id @default(uuid())
+  id             String             @id @default(uuid())
   ordemServicoId String
-  status          StatusOrdemServico
-  dataHora        DateTime           @default(now())
-  ordemServico    OrdemDeServico     @relation(fields: [ordemServicoId], references: [id])
+  status         StatusOrdemServico
+  dataHora       DateTime           @default(now())
+  ordemServico   OrdemDeServico     @relation(fields: [ordemServicoId], references: [id])
+
+  @@index([ordemServicoId, dataHora])
+  @@index([status, dataHora])
 }
 
 model Orcamento {
-  id              String          @id @default(uuid())
-  ordemServicoId String          @unique
-  valorTotal      Decimal         @db.Decimal(10, 2)
-  status          StatusOrcamento
-  ordemServico    OrdemDeServico @relation(fields: [ordemServicoId], references: [id])
-  servicos        OrcamentoServico[]
-  pecas           OrcamentoPeca[]
-  criadoEm        DateTime        @default(now())
-  atualizadoEm    DateTime        @updatedAt
+  id             String             @id @default(uuid())
+  ordemServicoId String             @unique
+  valorTotal     Decimal            @db.Decimal(10, 2)
+  status         StatusOrcamento
+  ordemServico   OrdemDeServico     @relation(fields: [ordemServicoId], references: [id])
+  servicos       OrcamentoServico[]
+  pecas          OrcamentoPeca[]
+  criadoEm       DateTime           @default(now())
+  atualizadoEm   DateTime           @updatedAt
 }
 
 model Servico {
-  id           String   @id @default(uuid())
+  id           String             @id @default(uuid())
   nome         String
-  preco        Decimal  @db.Decimal(10, 2)
+  preco        Decimal            @db.Decimal(10, 2)
   orcamentos   OrcamentoServico[]
-  criadoEm     DateTime @default(now())
-  atualizadoEm DateTime @updatedAt
+  criadoEm     DateTime           @default(now())
+  atualizadoEm DateTime           @updatedAt
+
+  @@index([nome])
 }
 
 model Peca {
-  id           String   @id @default(uuid())
-  nome         String
-  preco        Decimal  @db.Decimal(10, 2)
-  quantidade   Int
-  estoqueMinimo Int     @default(5)
-  estoque      Estoque?
-  orcamentos   OrcamentoPeca[]
-  criadoEm     DateTime @default(now())
-  atualizadoEm DateTime @updatedAt
+  id            String          @id @default(uuid())
+  nome          String
+  preco         Decimal         @db.Decimal(10, 2)
+  quantidade    Int
+  estoqueMinimo Int             @default(5)
+  estoque       Estoque?
+  orcamentos    OrcamentoPeca[]
+  criadoEm      DateTime        @default(now())
+  atualizadoEm  DateTime        @updatedAt
+
+  @@index([nome])
 }
 
 model Estoque {
-  pecaId                String @id
-  quantidadeDisponivel  Int
-  quantidadeReservada   Int
-  peca                  Peca   @relation(fields: [pecaId], references: [id])
-  atualizadoEm          DateTime @updatedAt
+  pecaId               String   @id
+  quantidadeDisponivel Int
+  quantidadeReservada  Int
+  peca                 Peca     @relation(fields: [pecaId], references: [id])
+  atualizadoEm         DateTime @updatedAt
 }
 
 model OrcamentoServico {
@@ -136,11 +157,11 @@ model OrcamentoServico {
 }
 
 model OrcamentoPeca {
-  id          String    @id @default(uuid())
-  orcamentoId String
-  pecaId      String
-  quantidade  Int
-  valorUnitario Decimal @db.Decimal(10, 2)
-  orcamento   Orcamento @relation(fields: [orcamentoId], references: [id])
-  peca        Peca      @relation(fields: [pecaId], references: [id])
+  id            String    @id @default(uuid())
+  orcamentoId   String
+  pecaId        String
+  quantidade    Int
+  valorUnitario Decimal   @db.Decimal(10, 2)
+  orcamento     Orcamento @relation(fields: [orcamentoId], references: [id])
+  peca          Peca      @relation(fields: [pecaId], references: [id])
 }

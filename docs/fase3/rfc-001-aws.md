@@ -22,10 +22,10 @@ Usar AWS na região `us-east-1`, com os seguintes serviços:
 - CloudWatch como fonte nativa, encaminhando telemetria ao Datadog;
 - S3 para estado Terraform e locking nativo do backend S3.
 
-Homologação e produção ficam em contas AWS separadas dentro de AWS
-Organizations. Cada conta possui VPC, EKS, RDS, segredos e estado Terraform
-próprios. Essa separação reduz o raio de impacto e torna as evidências de deploy
-mais claras.
+O projeto usará a conta única AWS Academy Learner Lab `982623100545`, fornecida
+pela pós-graduação. Homologação e produção serão isoladas logicamente por
+prefixos, tags, estados Terraform, secrets, bancos e recursos distintos. A
+impossibilidade de isolamento por conta é aceita e detalhada na RFC-005.
 
 Para o trabalho acadêmico, `us-east-1` foi escolhida por disponibilidade ampla e
 custo normalmente menor. A latência para usuários no Brasil é uma consequência
@@ -34,34 +34,37 @@ requisitos de residência de dados.
 
 ## Rede
 
-- duas Availability Zones por ambiente;
+- duas Availability Zones quando quotas e permissões permitirem;
 - load balancer em sub-redes públicas;
 - EKS nodes e RDS em sub-redes privadas;
 - RDS sem endpoint público;
-- um NAT Gateway por ambiente na versão acadêmica;
+- NAT Gateway somente se permitido e necessário, priorizando homologação temporária;
 - Security Groups referenciando outros Security Groups, nunca `0.0.0.0/0` na
   porta 5432;
 - API Gateway acessa a API por VPC Link e load balancer interno.
 
 ## CI/CD e credenciais
 
-GitHub Actions assume roles IAM por OpenID Connect. Não serão armazenadas
-access keys AWS de longa duração no GitHub. Haverá uma role por repositório e
-ambiente, com privilégio mínimo.
+GitHub Actions deverá assumir roles por OpenID Connect se o Learner Lab permitir
+criar provider e roles. Se bloqueado, serão usados GitHub Environments com as
+credenciais temporárias da sessão. Elas nunca serão commitadas e precisarão ser
+renovadas quando expirarem.
 
 ## Alternativas consideradas
 
 - Azure: atende aos requisitos, mas foi descartada porque AWS foi escolhida pelo
   grupo.
-- Um único EKS com namespaces por ambiente: mais barato, porém cria acoplamento,
-  compartilha falhas e reduz o isolamento.
+- Dois EKS na mesma conta: melhor isolamento, mas pode exceder saldo ou quotas.
+- Um único EKS com namespaces por ambiente: contingência econômica que reduz o isolamento.
 - Kind no GitHub runner: útil para testes, mas não é deploy cloud persistente.
 
 ## Consequências
 
-- dois clusters aumentam o custo mínimo;
-- a separação de contas melhora segurança, rastreabilidade e limpeza;
-- será necessário bootstrap de estado Terraform e roles OIDC em cada conta;
+- a conta e suas credenciais são temporárias;
+- permissões, quotas, regiões e serviços podem ser limitados pela Academy;
+- o isolamento é lógico, não uma barreira de conta;
+- o número de clusters dependerá da validação de custo e quotas;
+- haverá estado Terraform separado por ambiente;
 - recursos atuais de Kind continuam úteis apenas para desenvolvimento/testes.
 
 ## Referências
@@ -69,4 +72,3 @@ ambiente, com privilégio mínimo.
 - https://aws.amazon.com/eks/pricing/
 - https://aws.amazon.com/api-gateway/pricing/
 - https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html
-
