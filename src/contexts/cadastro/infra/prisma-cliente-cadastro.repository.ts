@@ -81,7 +81,8 @@ export class PrismaClienteCadastroRepository
         ...(input.nome !== undefined ? { nome: input.nome } : {}),
         ...(input.cpfCnpj !== undefined ? { cpfCnpj: CpfCnpj.create(input.cpfCnpj).value } : {}),
         ...(input.email !== undefined ? { email: Email.create(input.email).value } : {}),
-        ...(input.telefone !== undefined ? { telefone: Telefone.create(input.telefone).value } : {})
+        ...(input.telefone !== undefined ? { telefone: Telefone.create(input.telefone).value } : {}),
+        ...(input.status !== undefined ? { status: input.status } : {})
       }
     });
   }

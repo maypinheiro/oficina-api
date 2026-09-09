@@ -1,4 +1,4 @@
-import { PrismaClient, StatusOrcamento, StatusOrdemServico } from "@prisma/client";
+import { PrismaClient, StatusCliente, StatusOrcamento, StatusOrdemServico } from "@prisma/client";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -23,13 +23,15 @@ async function main() {
     update: {
       nome: "Maria Silva",
       email: "maria@email.com",
-      telefone: "11999999999"
+      telefone: "11999999999",
+      status: StatusCliente.ATIVO
     },
     create: {
       nome: "Maria Silva",
       cpfCnpj: "52998224725",
       email: "maria@email.com",
-      telefone: "11999999999"
+      telefone: "11999999999",
+      status: StatusCliente.ATIVO
     }
   });
 

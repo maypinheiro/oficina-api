@@ -5,7 +5,12 @@ export type CriarClienteInput = {
   telefone: string;
 };
 
-export type AtualizarClienteInput = Partial<CriarClienteInput>;
+export const statusCliente = ["ATIVO", "INATIVO", "BLOQUEADO"] as const;
+export type StatusCliente = (typeof statusCliente)[number];
+
+export type AtualizarClienteInput = Partial<CriarClienteInput> & {
+  status?: StatusCliente;
+};
 
 export type CriarVeiculoInput = {
   placa: string;
@@ -23,6 +28,7 @@ export type ClienteDto = {
   cpfCnpj: string;
   email: string;
   telefone: string;
+  status: StatusCliente;
   criadoEm: Date;
   atualizadoEm: Date;
 };

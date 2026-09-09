@@ -45,7 +45,8 @@ export const openApiDocument = {
           nome: { type: "string" },
           cpfCnpj: { type: "string" },
           email: { type: "string" },
-          telefone: { type: "string" }
+          telefone: { type: "string" },
+          status: { type: "string", enum: ["ATIVO", "INATIVO", "BLOQUEADO"] }
         },
         required: ["nome", "cpfCnpj", "email", "telefone"]
       },
@@ -55,7 +56,8 @@ export const openApiDocument = {
           nome: { type: "string" },
           cpfCnpj: { type: "string" },
           email: { type: "string" },
-          telefone: { type: "string" }
+          telefone: { type: "string" },
+          status: { type: "string", enum: ["ATIVO", "INATIVO", "BLOQUEADO"] }
         }
       },
       VeiculoInput: {
@@ -235,7 +237,8 @@ export const openApiDocument = {
                   nome: "Cliente Seed Oficina",
                   cpfCnpj: "11222333000181",
                   email: "seed.oficina@email.com",
-                  telefone: "11999999999"
+                  telefone: "11999999999",
+                  status: "ATIVO"
                 }]
               }
             }
@@ -271,7 +274,8 @@ export const openApiDocument = {
         requestBody: json({ $ref: "#/components/schemas/ClienteAtualizacaoInput" }, {
           nome: "Maria Silva Atualizada",
           email: "maria.novo@email.com",
-          telefone: "(11) 98888-7777"
+          telefone: "(11) 98888-7777",
+          status: "INATIVO"
         }),
         responses: { "200": { description: "Atualizado" }, "404": { description: "Cliente nao encontrado" } }
       },
