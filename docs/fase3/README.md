@@ -12,10 +12,11 @@ fase continua sendo `../definicoesFase3.md`, complementado por
 | Tema | Decisão |
 |---|---|
 | Nuvem | AWS |
+| Conta | AWS Academy Learner Lab (`982623100545`), conta única e temporária |
 | Região primária | `us-east-1` (N. Virginia), por custo e disponibilidade de serviços |
 | Observabilidade | Datadog, integrado a EKS, Lambda, API Gateway e PostgreSQL/RDS |
-| Homologação | Conta AWS própria, deploy automático da branch `homolog` |
-| Produção | Conta AWS própria, deploy automático da branch `main`, com aprovação do environment antes da promoção |
+| Homologação | Recursos `hml`, preferencialmente temporários, com deploy da branch `homolog` |
+| Produção | Recursos `prod`, deploy da branch `main` e aprovação do environment |
 | Entrada HTTP | Amazon API Gateway HTTP API |
 | Autenticação do cliente | CPF validado por AWS Lambda, consulta ao RDS e emissão de JWT |
 | Validação do JWT | Lambda Authorizer no API Gateway, com cache curto |
@@ -38,11 +39,11 @@ feature/* -> develop -> homolog -> main
 ```
 
 - Pull Requests e checks obrigatórios em todas as promoções.
-- `homolog` aplica automaticamente na conta de homologação.
+- `homolog` aplica no ambiente lógico de homologação da conta Learner Lab.
 - `main` inicia o CD de produção; o GitHub Environment `production` exige
   aprovação e, depois dela, o restante do deploy é automático.
-- Produção e homologação usam estados Terraform, segredos, bancos e contas
-  separados. Não há compartilhamento de dados pessoais entre ambientes.
+- Produção e homologação usam nomes, tags, estados Terraform, secrets e bancos
+  distintos dentro da mesma conta. Não há compartilhamento de dados pessoais.
 - Homologação usa dados sintéticos e pode ter recursos desligados fora da janela
   de trabalho para redução de custo.
 
@@ -69,14 +70,15 @@ na RFC de autenticação. CPF completo e JWT nunca devem aparecer nos logs.
 - `rfc-004-observabilidade-datadog.md`: métricas, logs, traces e alertas;
 - `estimativa-custos.md`: estimativa inicial e mecanismos de controle;
 - `arquitetura-alvo.md`: visão de componentes e fluxos principais.
+- `rfc-005-aws-academy-learner-lab.md`: limitações da conta acadêmica e contingências.
 
 ## Próximo gate
 
 Antes de provisionar recursos pagos:
 
-1. criar/confirmar as contas AWS de homologação e produção;
-2. confirmar o limite mensal aceito pelo grupo;
-3. criar budgets e alertas de custo;
-4. criar os quatro repositórios exigidos;
-5. configurar OIDC entre GitHub Actions e AWS, sem access keys duradouras.
-
+1. instalar/configurar AWS CLI e iniciar uma sessão do Learner Lab;
+2. executar a matriz de permissões da RFC-005;
+3. confirmar saldo e data de expiração do laboratório;
+4. criar budgets e alertas, se a role permitir;
+5. configurar OIDC se permitido; caso contrário, usar a contingência de
+   credenciais temporárias sem versioná-las.

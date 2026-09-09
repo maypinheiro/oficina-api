@@ -36,8 +36,10 @@ flowchart LR
   TF --> RDS
 ```
 
-O mesmo desenho existe nas contas de homologação e produção, sem banco,
-segredos ou estado Terraform compartilhados.
+O desenho será implantado na conta única AWS Academy Learner Lab. Homologação e
+produção não compartilham banco, secrets ou estado Terraform, embora estejam na
+mesma conta. Se saldo ou quotas impedirem dois EKS, a contingência será um
+cluster com namespaces separados e homologação temporária.
 
 ## Sequência de autenticação do cliente
 
@@ -137,4 +139,3 @@ Tags obrigatórias:
 | `Repository` | nome do repositório responsável |
 | `DataClassification` | `personal` quando alcançar dados de cliente |
 | `ExpiresAt` | data de remoção do recurso acadêmico, quando aplicável |
-
