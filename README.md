@@ -9,7 +9,7 @@ o domínio, casos de uso, API HTTP, Prisma, migrations, testes e imagem Docker.
 - PostgreSQL, Prisma e migrations;
 - Jest, ESLint e Swagger/OpenAPI;
 - Docker e Kubernetes;
-- Datadog APM/logs (a implementar na etapa de observabilidade).
+- Datadog APM, logs, métricas, dashboards e alertas versionados.
 
 ## Execução local
 
