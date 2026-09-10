@@ -16,6 +16,9 @@ describe("loadEnv", () => {
     process.env.PORT = "3333";
     process.env.DATABASE_URL = "postgresql://localhost:5432/oficina";
     process.env.JWT_SECRET = "secret";
+    process.env.JWT_PUBLIC_KEY_BASE64 = "public-key-base64";
+    process.env.JWT_ISSUER = "issuer";
+    process.env.JWT_AUDIENCE = "audience";
     process.env.ADMIN_USERNAME = "admin-user";
     process.env.ADMIN_PASSWORD = "admin-pass";
     process.env.CORS_ORIGIN = "http://localhost:3000";
@@ -25,6 +28,9 @@ describe("loadEnv", () => {
       port: 3333,
       databaseUrl: "postgresql://localhost:5432/oficina",
       jwtSecret: "secret",
+      jwtPublicKeyBase64: "public-key-base64",
+      jwtIssuer: "issuer",
+      jwtAudience: "audience",
       adminUsername: "admin-user",
       adminPassword: "admin-pass",
       corsOrigin: "http://localhost:3000"
@@ -36,6 +42,9 @@ describe("loadEnv", () => {
     delete process.env.PORT;
     delete process.env.DATABASE_URL;
     delete process.env.JWT_SECRET;
+    delete process.env.JWT_PUBLIC_KEY_BASE64;
+    delete process.env.JWT_ISSUER;
+    delete process.env.JWT_AUDIENCE;
     delete process.env.ADMIN_USERNAME;
     delete process.env.ADMIN_PASSWORD;
     delete process.env.CORS_ORIGIN;
@@ -45,6 +54,9 @@ describe("loadEnv", () => {
       port: 3000,
       databaseUrl: undefined,
       jwtSecret: "local-dev-secret",
+      jwtPublicKeyBase64: undefined,
+      jwtIssuer: "oficina-auth",
+      jwtAudience: "oficina-api",
       adminUsername: "admin",
       adminPassword: "admin",
       corsOrigin: "*"

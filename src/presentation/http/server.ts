@@ -19,6 +19,7 @@ import { createPublicRouter } from "./routes/public.routes";
 import { createVeiculosRouter } from "./routes/veiculos.routes";
 import { loadEnv } from "../../shared/config/env";
 import { createHttpContext } from "./http-context";
+import { observeHttp } from "./middlewares/observability";
 
 type ServerOptions = {
   prisma?: ReturnType<typeof getPrismaClient>;
@@ -33,6 +34,7 @@ export function createServer(options: ServerOptions = {}) {
   app.use(helmet());
   app.use(cors({ origin: env.corsOrigin }));
   app.use(express.json());
+  app.use(observeHttp);
 
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
   app.use("/health", createHealthRouter(httpContext.healthController));

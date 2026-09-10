@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { statusCliente } from "../../../../contexts/cadastro/application/cadastro.repository";
+
 export const clienteSchema = z.object({
   nome: z.string().min(1),
   cpfCnpj: z.string().min(1),
@@ -7,7 +9,9 @@ export const clienteSchema = z.object({
   telefone: z.string().min(1)
 });
 
-export const atualizarClienteSchema = clienteSchema.partial().refine((input) => Object.keys(input).length > 0, {
+export const atualizarClienteSchema = clienteSchema.partial().extend({
+  status: z.enum(statusCliente).optional()
+}).refine((input) => Object.keys(input).length > 0, {
   message: "Informe ao menos um campo para atualizar"
 });
 

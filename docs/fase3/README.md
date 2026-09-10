@@ -70,6 +70,7 @@ na RFC de autenticação. CPF completo e JWT nunca devem aparecer nos logs.
 - `rfc-004-observabilidade-datadog.md`: métricas, logs, traces e alertas;
 - `estimativa-custos.md`: estimativa inicial e mecanismos de controle;
 - `arquitetura-alvo.md`: visão de componentes e fluxos principais.
+- `modelo-dados.md`: modelo ER, índices, integridade e justificativa relacional.
 - `rfc-005-aws-academy-learner-lab.md`: limitações da conta acadêmica e contingências.
 
 ## Próximo gate

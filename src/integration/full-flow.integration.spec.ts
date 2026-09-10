@@ -326,16 +326,19 @@ describeIf("fluxo completo da oficina", () => {
 
     const clientePorId = await get(`/clientes/${cliente.id}`, true);
     expect(clientePorId.cpfCnpj).toBe(cliente.cpfCnpj);
+    expect(clientePorId.status).toBe("ATIVO");
 
     const clienteAtualizado = await patch(
       `/clientes/cpf-cnpj/${cpfCrud}`,
       {
         nome: "Cliente CRUD Atualizado",
-        email: "crud.atualizado@email.com"
+        email: "crud.atualizado@email.com",
+        status: "INATIVO"
       },
       true
     );
     expect(clienteAtualizado.nome).toBe("Cliente CRUD Atualizado");
+    expect(clienteAtualizado.status).toBe("INATIVO");
 
     const veiculo = await post(
       "/veiculos",

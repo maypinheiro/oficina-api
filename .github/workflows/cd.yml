@@ -1,0 +1,68 @@
+name: Deploy API
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Ambiente de destino
+        required: true
+        type: choice
+        options: [hml, prod]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oficina-api-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+      CLUSTER_NAME: oficina-${{ inputs.environment }}
+      IMAGE_TAG: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: maypinheiro/oficina-k8s-infra
+          ref: develop
+          path: cloud-infra
+      - uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - id: ecr
+        uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2
+      - name: Build and push immutable image
+        run: |
+          IMAGE_URI=${{ steps.ecr.outputs.registry }}/oficina-api:${IMAGE_TAG}
+          docker build --tag "$IMAGE_URI" .
+          docker push "$IMAGE_URI"
+      - name: Configure cluster and render manifests
+        run: |
+          aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$AWS_REGION"
+          sed -i "s/oficina-env/oficina-${{ inputs.environment }}/g; s/ENVIRONMENT/${{ inputs.environment }}/g; s/IMAGE_TAG/${IMAGE_TAG}/g; s|CORS_ORIGIN|${{ vars.CORS_ORIGIN }}|g" cloud-infra/k8s/*.yaml
+      - name: Run controlled migration
+        run: |
+          kubectl apply -f cloud-infra/k8s/namespace.yaml
+          kubectl apply -f cloud-infra/k8s/configmap.yaml -f cloud-infra/k8s/secret.yaml
+          kubectl delete job prisma-migrate -n "oficina-${{ inputs.environment }}" --ignore-not-found
+          kubectl apply -f cloud-infra/k8s/prisma-job.yaml
+          kubectl wait --for=condition=complete job/prisma-migrate -n "oficina-${{ inputs.environment }}" --timeout=5m
+      - name: Deploy and verify rollout
+        run: |
+          kubectl apply -f cloud-infra/k8s/api.yaml -f cloud-infra/k8s/api-pdb.yaml -f cloud-infra/k8s/hpa.yaml
+          kubectl rollout status deployment/oficina-api -n "oficina-${{ inputs.environment }}" --timeout=5m
+          kubectl get deployment,pods,hpa -n "oficina-${{ inputs.environment }}" -o wide
+      - name: Smoke test through port-forward
+        run: |
+          kubectl port-forward -n "oficina-${{ inputs.environment }}" service/oficina-api 8080:80 >/tmp/port-forward.log 2>&1 &
+          for attempt in {1..12}; do curl --fail http://127.0.0.1:8080/health && exit 0; sleep 5; done
+          cat /tmp/port-forward.log
+          exit 1
