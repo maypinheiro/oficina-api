@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { generateKeyPairSync } from "node:crypto";
 
 import { authenticate } from "./authenticate";
 
@@ -47,7 +48,7 @@ describe("authenticate", () => {
   });
 
   it("aceita token valido", () => {
-    const token = jwt.sign({ sub: "admin" }, "test-secret");
+    const token = jwt.sign({ sub: "admin" }, "test-secret", { algorithm: "HS256" });
     const request = { headers: { authorization: `Bearer ${token}` } };
     const response = {
       status: jest.fn().mockReturnThis(),
@@ -59,5 +60,38 @@ describe("authenticate", () => {
 
     expect(next).toHaveBeenCalledTimes(1);
   });
-});
 
+  it("aceita token RS256 de cliente com emissor e audiencia esperados", () => {
+    const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+    process.env.JWT_PUBLIC_KEY_BASE64 = Buffer.from(
+      publicKey.export({ type: "spki", format: "pem" })
+    ).toString("base64");
+    process.env.JWT_ISSUER = "oficina-auth";
+    process.env.JWT_AUDIENCE = "oficina-api";
+    const token = jwt.sign({ scope: "cliente" }, privateKey, {
+      algorithm: "RS256",
+      subject: "cliente-1",
+      issuer: "oficina-auth",
+      audience: "oficina-api"
+    });
+    const request = { headers: { authorization: `Bearer ${token}` } };
+    const response = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+    const next = jest.fn();
+
+    authenticate(request as never, response as never, next);
+
+    expect(next).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejeita algoritmo diferente do configurado", () => {
+    const token = jwt.sign({ sub: "admin" }, "test-secret", { algorithm: "HS384" });
+    const request = { headers: { authorization: `Bearer ${token}` } };
+    const response = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+    const next = jest.fn();
+
+    authenticate(request as never, response as never, next);
+
+    expect(response.status).toHaveBeenCalledWith(401);
+    expect(next).not.toHaveBeenCalled();
+  });
+});
