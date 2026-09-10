@@ -39,6 +39,27 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - id: ecr
         uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2
+      - name: Authorize this runner on the EKS public endpoint
+        shell: bash
+        run: |
+          RUNNER_CIDR="$(curl --fail --silent --show-error https://checkip.amazonaws.com)/32"
+          CURRENT_CIDRS="$(aws eks describe-cluster \
+            --name "$CLUSTER_NAME" \
+            --region "$AWS_REGION" \
+            --query 'cluster.resourcesVpcConfig.publicAccessCidrs' \
+            --output json)"
+          MERGED_CIDRS="$(jq --compact-output --null-input \
+            --argjson current "$CURRENT_CIDRS" \
+            --arg runner "$RUNNER_CIDR" \
+            '$current + [$runner] | unique')"
+          VPC_CONFIG="$(jq --compact-output --null-input \
+            --argjson cidrs "$MERGED_CIDRS" \
+            '{endpointPublicAccess: true, publicAccessCidrs: $cidrs}')"
+          aws eks update-cluster-config \
+            --name "$CLUSTER_NAME" \
+            --region "$AWS_REGION" \
+            --resources-vpc-config "$VPC_CONFIG"
+          aws eks wait cluster-active --name "$CLUSTER_NAME" --region "$AWS_REGION"
       - name: Build and push immutable image
         run: |
           IMAGE_URI=${{ steps.ecr.outputs.registry }}/oficina-api:${IMAGE_TAG}
