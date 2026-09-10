@@ -5,8 +5,8 @@
 ```mermaid
 flowchart LR
   User["Cliente"] --> APIGW["API Gateway HTTP API"]
-  Staff["Funcionário"] --> Cognito["Amazon Cognito"]
-  Cognito --> APIGW
+  Staff["Funcionário"] --> LegacyAuth["Login administrativo legado"]
+  LegacyAuth --> APIGW
 
   APIGW -->|"POST /auth/clientes"| Auth["Lambda Auth CPF"]
   APIGW -->|"Bearer JWT"| Authorizer["Lambda Authorizer"]
@@ -28,7 +28,7 @@ flowchart LR
   EKS["EKS + HPA + PDB"] --> API
   EKS --> DD
 
-  GHA["GitHub Actions via OIDC"] --> ECR["Amazon ECR"]
+  GHA["GitHub Actions + credenciais temporárias Academy"] --> ECR["Amazon ECR"]
   GHA --> TF["Terraform"]
   ECR --> EKS
   TF --> APIGW
@@ -97,6 +97,29 @@ sequenceDiagram
   else negado
     GW-->>Cliente: 401/403
   end
+```
+
+## Sequência de abertura da ordem de serviço
+
+```mermaid
+sequenceDiagram
+  actor Operador
+  participant GW as API Gateway
+  participant AZ as Lambda Authorizer
+  participant API as Oficina API no EKS
+  participant DB as RDS PostgreSQL
+  participant DD as Datadog
+
+  Operador->>GW: POST /ordens-servico + Bearer JWT
+  GW->>AZ: validar token
+  AZ-->>GW: allow + identidade
+  GW->>API: cliente, veículo e descrição
+  API->>API: validar entrada e regras do domínio
+  API->>DB: transação cria OS e status RECEBIDA
+  DB-->>API: número único e dados persistidos
+  API->>DD: log, trace e métrica com correlationId
+  API-->>GW: 201 Created
+  GW-->>Operador: ordem criada
 ```
 
 ## Fronteiras dos quatro repositórios

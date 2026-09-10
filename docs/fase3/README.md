@@ -68,6 +68,11 @@ na RFC de autenticação. CPF completo e JWT nunca devem aparecer nos logs.
 - `rfc-002-postgresql-rds.md`: banco e acesso privado;
 - `rfc-003-autenticacao.md`: CPF, JWT, Authorizer e funcionários;
 - `rfc-004-observabilidade-datadog.md`: métricas, logs, traces e alertas;
+- `adrs/`: decisões permanentes com contexto, alternativas e consequências;
+- `seguranca.md`: controles, riscos e resposta a incidente;
+- `observabilidade.md`: sinais, correlação e critérios operacionais;
+- `runbook.md`: implantação, diagnóstico, rollback e encerramento;
+- `matriz-rotas-permissoes.md`: exposição e autenticação das rotas;
 - `estimativa-custos.md`: estimativa inicial e mecanismos de controle;
 - `arquitetura-alvo.md`: visão de componentes e fluxos principais.
 - `modelo-dados.md`: modelo ER, índices, integridade e justificativa relacional.
