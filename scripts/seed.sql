@@ -27,9 +27,10 @@ WHERE "ordemServicoId" IN (
 DELETE FROM "OrdemDeServico"
 WHERE "numeroOs" LIKE 'OS-SEED-%';
 
-INSERT INTO "Cliente" (id, nome, "cpfCnpj", email, telefone, "criadoEm", "atualizadoEm")
-VALUES ('00000000-0000-0000-0000-000000000101', 'Cliente Seed Oficina', '11222333000181', 'seed.oficina@email.com', '11999999999', now(), now())
+INSERT INTO "Cliente" (id, nome, "cpfCnpj", email, telefone, status, "criadoEm", "atualizadoEm")
+VALUES ('00000000-0000-0000-0000-000000000101', 'Cliente Seed Oficina', '11222333000181', 'seed.oficina@email.com', '11999999999', 'ATIVO', now(), now())
 ON CONFLICT ("cpfCnpj") DO UPDATE SET
+  status = 'ATIVO',
   nome = EXCLUDED.nome,
   email = EXCLUDED.email,
   telefone = EXCLUDED.telefone,

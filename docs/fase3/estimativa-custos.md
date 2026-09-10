@@ -6,7 +6,8 @@
 
 ## Premissas
 
-- dois ambientes persistentes (`hml` e `prod`);
+- uma conta AWS Academy Learner Lab com crédito e duração limitados;
+- dois ambientes lógicos (`hml` e `prod`) na mesma conta;
 - um cluster EKS por ambiente, em versão com suporte padrão;
 - dois nodes pequenos por cluster para demonstrar disponibilidade e HPA;
 - um RDS PostgreSQL pequeno Single-AZ por ambiente;
@@ -51,10 +52,14 @@ US$ 250–500, dependendo do número de horas ativas e do trial/plano Datadog. U
 único cluster compartilhado seria ainda mais barato, mas não é a recomendação
 arquitetural por reduzir isolamento.
 
+Na conta Learner Lab, a estimativa deve ser comparada ao saldo antes de cada
+`terraform apply`. Recursos podem continuar consumindo crédito quando a sessão
+interativa estiver encerrada; encerrar a sessão não substitui `terraform destroy`.
+
 ## Guardrails obrigatórios
 
-1. AWS Budget mensal com alertas em 50%, 80% e 100%.
-2. Anomaly Detection de custo habilitada.
+1. AWS Budget com alertas em 50%, 80% e 100%, se permitido pela Academy.
+2. Anomaly Detection de custo, se disponível para a role do laboratório.
 3. Tags de custo em todos os recursos.
 4. TTL ou data de expiração registrada para recursos acadêmicos.
 5. Lifecycle policy no ECR.
@@ -62,6 +67,7 @@ arquitetural por reduzir isolamento.
 7. `terraform plan` revisado antes de todo apply de produção.
 8. Procedimento documentado de `terraform destroy` após avaliação, preservando
    previamente evidências e backups necessários.
+9. Conferência manual do saldo no início e no fim de cada sessão.
 
 ## Referências de preço
 
@@ -75,4 +81,3 @@ arquitetural por reduzir isolamento.
 
 Antes do provisionamento, os valores devem ser refeitos no AWS Pricing
 Calculator com região, classes e horas efetivamente escolhidas.
-
