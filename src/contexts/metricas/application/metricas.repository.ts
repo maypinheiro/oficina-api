@@ -1,7 +1,10 @@
 export type TempoMedioOrdens = {
   ordensFinalizadas: number;
+  volumeDiario: number;
   tempoMedioMs: number;
   tempoMedioHoras: number;
+  tempoMedioDiagnosticoHoras: number;
+  tempoMedioExecucaoHoras: number;
 };
 
 export type TempoMedioServico = {
