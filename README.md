@@ -30,6 +30,17 @@ npm test
 npm run build
 ```
 
+## Observabilidade
+
+A API inicializa `dd-trace` antes do Express e Prisma, produz traces HTTP e
+PostgreSQL e envia métricas via DogStatsD. Cada resposta contém
+`x-correlation-id`; logs JSON incluem rota, método, status, duração,
+correlation ID, trace ID, número da OS quando presente e tipo de erro.
+
+Campos associados a token, senha, CPF, segredo ou connection string são
+removidos pelo logger. As variáveis `DD_AGENT_HOST`, `DD_SERVICE`, `DD_ENV`,
+`DD_VERSION` e `DD_TRACE_SAMPLE_RATE` são definidas pelos manifests cloud.
+
 ## CI/CD
 
 O workflow inicial valida a aplicação em Pull Requests e pushes. O CD para EKS
@@ -49,4 +60,3 @@ flowchart LR
 ```
 
 As definições completas estão em `docs/fase3/`.
-
