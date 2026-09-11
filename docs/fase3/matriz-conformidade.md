@@ -35,13 +35,13 @@ Esta auditoria usa como fonte de verdade [`definicoesFase3.md`](../definicoesFas
 | CI funcional nos quatro | Atendido | Lint/testes/build/audit na aplicação/Function; fmt/validate/tfsec nas infraestruturas; checks `validate` obrigatórios |
 | Main protegida e sem commit direto | Atendido | GitHub API confirmou PR obrigatório, branch atualizada, conversas resolvidas, force-push/delete bloqueados e enforcement para admins |
 | Alterações por Pull Request | Atendido | Branch protection e histórico das PRs de implementação/documentação |
-| Deploy automatizado de homologação | **Parcial** | Workflow aplica toda a entrega, mas o gatilho atual é `workflow_dispatch`; falta disparo automático após CI da branch `homolog` |
-| Deploy automatizado de produção | **Parcial** | Workflow aceita `prod`, state/environment são isolados, mas falta disparo automático após CI da `main`; aprovação de environment pode ser mantida |
+| Deploy automatizado de homologação | Atendido | `workflow_run` dispara somente após CI bem-sucedido em `homolog`, deriva `hml` e implanta exatamente o `head_sha` validado |
+| Deploy automatizado de produção | Atendido | `workflow_run` dispara após CI bem-sucedido em `main`, deriva `prod` e aguarda a aprovação obrigatória do GitHub Environment |
 | Dockerfile quando aplicável | Atendido | A API possui Dockerfile multi-stage. Function é ZIP Lambda; repositórios Terraform não precisam de imagem, conforme orientação oficial |
 
-### Lacuna crítica CI/CD
+### Automação CI/CD concluída
 
-Os quatro arquivos `.github/workflows/cd.yml` estão funcionais e foram executados em homologação, porém somente de forma manual. Para aderência literal, adicionar `workflow_run` após CI bem-sucedido em `homolog` e `main`, derivando `hml`/`prod`, e manter `workflow_dispatch` como contingência. Produção deve continuar protegida pelo GitHub Environment.
+Os quatro arquivos `.github/workflows/cd.yml` possuem `workflow_run` condicionado à conclusão bem-sucedida do respectivo CI. A branch `homolog` deriva o Environment `hml`; `main` deriva `prod`. O checkout utiliza o `head_sha` aprovado no CI, `workflow_dispatch` foi preservado como contingência e a aprovação do Environment de produção continua sendo aplicada antes do job.
 
 ## 3. Infraestrutura cloud obrigatória
 
@@ -122,7 +122,6 @@ Os quatro arquivos `.github/workflows/cd.yml` estão funcionais e foram executad
 
 | Prioridade | Lacuna | Ação necessária |
 |---|---|---|
-| Crítica | CD apenas manual | Automatizar após CI de `homolog` e `main`, mantendo aprovação em `prod` |
 | Crítica | Vídeo e URL | Gravar até 15 minutos, publicar e inserir URL no PDF |
 | Alta | Evidência ao vivo | Registrar HPA, dashboards, logs correlacionados, trace e alerta durante o vídeo |
 | Alta | Ambiente `hml` atualmente 503 | Renovar credenciais Academy dentro dos controllers e repetir E2E |
