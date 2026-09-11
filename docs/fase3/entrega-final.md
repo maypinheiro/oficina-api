@@ -40,7 +40,7 @@ API Gateway HTTP API recebe as requisições públicas. A autenticação por CPF
 ## Resultado da auditoria dos requisitos
 
 - Atendidos: arquitetura cloud, quatro repositórios, proteção de branches, autenticação CPF/JWT, API Gateway, EKS/HPA, RDS, Terraform, CI, observabilidade, diagramas, RFCs, ADRs, modelo ER e colaborador da banca.
-- Parcial: workflows de deploy funcionam, mas ainda dependem de `workflow_dispatch`; falta o gatilho automático após CI de `homolog` e `main`.
+- Atendido: os quatro workflows usam `workflow_run` após CI verde em `homolog`/`main`, derivam `hml`/`prod`, implantam o SHA validado e preservam `workflow_dispatch` como contingência.
 - Pendentes: vídeo, URL do vídeo neste PDF e evidência visual ao vivo de HPA, dashboards, logs, trace e alerta.
 - Estado atual do ambiente: em 11/09/2026, `/health` e `/docs` retornaram 503 após expiração/rotação da sessão Academy; renovar controllers e repetir o E2E antes de gravar.
 
@@ -52,7 +52,6 @@ Matriz completa: https://github.com/maypinheiro/oficina-api/blob/main/docs/fase3
 - Publicar no YouTube ou Vimeo, público ou não listado.
 - Inserir a URL do vídeo neste documento e regenerar o PDF.
 - Durante a gravação, capturar visualmente os cenários negativos, ciclo completo da OS, correlação no Datadog, alerta e reação do HPA.
-- Automatizar o CD após CI das branches `homolog` e `main`, mantendo aprovação do GitHub Environment para produção.
 
 ## Documentação principal
 
