@@ -1,31 +1,62 @@
 # Oficina API
 
-API principal da oficina mecânica, responsável por clientes, veículos, catálogo, estoque, ordens de serviço, orçamentos e métricas. É executada no Amazon EKS e persiste dados no Amazon RDS PostgreSQL.
+API principal do sistema de oficina mecânica. Gerencia clientes, veículos, catálogo, estoque, ordens de serviço, orçamentos e métricas, com regras de negócio separadas da infraestrutura HTTP e da persistência.
 
-## Arquitetura
+## O que este repositório entrega
+
+- API REST em Node.js/TypeScript e Express;
+- domínios de clientes, catálogo, estoque, atendimento e orçamento;
+- persistência PostgreSQL via Prisma e migrations versionadas;
+- Swagger/OpenAPI e health check;
+- autenticação administrativa legada e consumo do JWT validado no Gateway;
+- logs JSON, correlation ID, métricas de negócio e Datadog APM;
+- imagem Docker segura para EKS;
+- testes unitários/integrados e pipelines CI/CD;
+- documentação central, RFCs, ADRs e diagramas da Fase 3.
 
 ```mermaid
 flowchart LR
-  Client["Cliente ou funcionário"] --> Gateway["Amazon API Gateway"]
-  Gateway --> API["Express API / Amazon EKS"]
-  API --> UseCases["Casos de uso"]
-  UseCases --> Domain["Domínio"]
-  UseCases --> Prisma["Repositórios Prisma"]
+  User["Cliente ou funcionário"] --> GW["API Gateway"]
+  GW --> Auth["Lambda Auth / Authorizer"]
+  Auth --> Link["VPC Link"]
+  Link --> API["Oficina API / EKS"]
+  API --> Domain["Casos de uso e domínio"]
+  Domain --> Prisma["Adaptadores Prisma"]
   Prisma --> RDS["RDS PostgreSQL privado"]
-  API --> DD["Datadog APM, logs e métricas"]
+  API -.-> DD["Datadog: logs, métricas e traces"]
 ```
 
-Documentação completa: [docs/fase3](docs/fase3/README.md). Repositórios relacionados: [autenticação](https://github.com/maypinheiro/oficina-auth-function), [Kubernetes](https://github.com/maypinheiro/oficina-k8s-infra) e [banco](https://github.com/maypinheiro/oficina-database-infra).
+## Documentação
+
+### Entrega da Fase 3
+
+- [Visão completa da entrega, objetivos e arquitetura integrada](docs/fase3/entrega-tecnica.md)
+- [Índice de RFCs, ADRs e documentação](docs/fase3/README.md)
+- [Arquitetura-alvo e diagramas de sequência](docs/fase3/arquitetura-alvo.md)
+- [Matriz de rotas e permissões](docs/fase3/matriz-rotas-permissoes.md)
+- [Modelo de dados](docs/fase3/modelo-dados.md)
+- [Segurança](docs/fase3/seguranca.md)
+- [Observabilidade](docs/fase3/observabilidade.md)
+- [Runbook e rollback](docs/fase3/runbook.md)
+- [Estimativa de custos](docs/fase3/estimativa-custos.md)
+- [Roteiro do vídeo final](docs/fase3/roteiro-video-final.md)
+- [Documento-base da entrega final](docs/fase3/entrega-final.md)
+
+### Referência da API
+
+- [Visão geral funcional](docs/visao-geral.md)
+- [APIs e fluxos](docs/apis.md)
+- [Arquitetura interna](docs/arquitetura.md)
+- [Decisões arquiteturais anteriores](docs/decisoes-arquiteturais.md)
+- [Linguagem ubíqua e DDD](docs/Linguagem-Ubiqua-DDD.md)
+- [CI/CD](docs/ci-cd.md)
+- [Infraestrutura](docs/infraestrutura.md)
+
+Repositórios relacionados: [autenticação](https://github.com/maypinheiro/oficina-auth-function), [Kubernetes](https://github.com/maypinheiro/oficina-k8s-infra) e [banco](https://github.com/maypinheiro/oficina-database-infra).
 
 ## Tecnologias
 
 Node.js 22, TypeScript, Express, Prisma, PostgreSQL, Jest, ESLint, Swagger/OpenAPI, Docker, Kubernetes, Datadog e GitHub Actions.
-
-## Pré-requisitos
-
-- Node.js 22 e npm;
-- Docker com Compose para PostgreSQL local;
-- para cloud: AWS Academy ativa, AWS CLI, `kubectl` e acesso ao EKS.
 
 ## Execução local
 
@@ -38,13 +69,11 @@ npm run db:seed
 npm run dev
 ```
 
-API: `http://localhost:3000`. Swagger: [http://localhost:3000/docs](http://localhost:3000/docs). Healthcheck: [http://localhost:3000/health](http://localhost:3000/health).
+API: <http://localhost:3000>. Swagger: <http://localhost:3000/docs>. Health check: <http://localhost:3000/health>.
 
-## Variáveis de ambiente
+Copie `.env.example` para `.env`. Segredos reais, credenciais, CPF e JWT nunca devem ser commitados ou registrados em logs.
 
-Copie `.env.example` para `.env`. Principais valores: `DATABASE_URL`, `PORT`, `CORS_ORIGIN`, `JWT_SECRET`, `JWT_PUBLIC_KEY_BASE64`, `JWT_ISSUER`, `JWT_AUDIENCE`, `DD_AGENT_HOST`, `DD_SERVICE`, `DD_ENV`, `DD_VERSION` e `DD_TRACE_SAMPLE_RATE`. Valores reais não devem ser commitados.
-
-## Testes
+## Qualidade
 
 ```bash
 npm run lint
@@ -55,25 +84,24 @@ npm run build
 npm audit --audit-level=high
 ```
 
-## CI/CD e deploy
+## Endpoints e segurança
 
-CI valida lint, tipos, testes, cobertura, integração, audit, build e imagem Docker. O CD manual publica imagem imutável no ECR com SHA, executa o Job de migration, faz rollout no EKS e smoke test. Use o GitHub Environment `hml` para homologação e `prod` para produção; `prod` exige aprovação.
+- `/health`, `/docs`, autenticação e `/public/*`: públicos;
+- `/clientes`, `/veiculos`, `/servicos`, `/pecas`, `/estoque`, `/ordens-servico`, `/orcamentos` e `/metricas`: protegidos pelo Gateway;
+- o fluxo administrativo legado permanece separado do JWT de clientes.
 
-## Rollback
+Consulte a [matriz completa](docs/fase3/matriz-rotas-permissoes.md) e o Swagger.
 
-Reexecute o CD com o SHA da última imagem saudável ou aplique essa imagem ao Deployment. Não reverta migrations automaticamente: confirme compatibilidade e use expand/contract. Consulte o [runbook](docs/fase3/runbook.md).
+## CI/CD e rollback
 
-## Endpoints
+CI valida lint, tipos, testes, cobertura, integração, segurança, build e IaC. CD publica imagem imutável no ECR, executa migration controlada, seed idempotente em `hml`, rollout no EKS e smoke tests. Rollback usa o SHA da última imagem saudável; migrations seguem expand/contract e não são revertidas automaticamente.
 
-- `/health`, `/docs`, `/auth/login` e `/public/*`: públicos;
-- `/clientes`, `/veiculos`, `/servicos`, `/pecas`, `/estoque`, `/ordens-servico`, `/orcamentos` e `/metricas`: JWT obrigatório.
+## Ambiente validado
 
-Veja a [matriz completa](docs/fase3/matriz-rotas-permissoes.md) e o Swagger local. Não há coleção Postman versionada.
+- Conta acadêmica: `982623100545`;
+- região: `us-east-1`;
+- API Gateway `hml`: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com>;
+- Swagger `hml`: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com/docs>;
+- evidência do fluxo protegido: <https://github.com/maypinheiro/oficina-auth-function/actions/runs/34617351925>.
 
-## Observabilidade
-
-Logs JSON, `x-correlation-id`, traces HTTP/PostgreSQL, métricas DogStatsD, dashboards e alertas Datadog estão implementados. Dados sensíveis são removidos pelo logger.
-
-## Ambiente ativo e limitações
-
-Ambiente cloud ativo: **não publicado nesta etapa**, pois as credenciais temporárias e os recursos do AWS Academy Learner Lab não estão disponíveis nesta sessão. Conta prevista: `982623100545`, região `us-east-1`. URLs do Gateway e Swagger cloud serão preenchidas após o primeiro deploy validado.
+O endpoint depende de uma sessão ativa do AWS Academy Learner Lab. Produção está codificada e separada, mas sua criação depende das permissões e do orçamento acadêmico.
