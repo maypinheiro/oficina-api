@@ -115,7 +115,7 @@ CI valida lint, tipos, testes, cobertura, integração, segurança, build e IaC.
 - RFCs, ADRs, arquitetura de componentes e sequências.
 - Quatro repositórios públicos com responsabilidades separadas.
 
-Para evitar que esta visão executiva esconda lacunas, consulte a [matriz de conformidade](matriz-conformidade.md). Ela diferencia requisito implementado, evidência executada e ação ainda pendente. Na auditoria de 11/09/2026, a principal lacuna técnica encontrada foi o gatilho manual dos workflows de CD; vídeo, evidência visual de HPA/Datadog e URL no PDF também dependem de conclusão.
+Para evitar que esta visão executiva esconda lacunas, consulte a [matriz de conformidade](matriz-conformidade.md). Ela diferencia requisito implementado, evidência executada e ação ainda pendente. A lacuna de CD foi encerrada com `workflow_run` após CI verde em `homolog`/`main`, mapeamento para `hml`/`prod`, checkout do SHA validado e aprovação de produção. Vídeo, evidência visual de HPA/Datadog e URL no PDF ainda dependem de conclusão.
 
 ## Limitações e transparência acadêmica
 
