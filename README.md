@@ -31,6 +31,9 @@ flowchart LR
 ### Entrega da Fase 3
 
 - [Visão completa da entrega, objetivos e arquitetura integrada](docs/fase3/entrega-tecnica.md)
+- [Matriz de conformidade com todos os requisitos oficiais](docs/fase3/matriz-conformidade.md)
+- [Catálogo de evidências executadas e rastreabilidade no código](docs/fase3/catalogo-evidencias.md)
+- [Guia de demonstração e aceite](docs/fase3/guia-demonstracao-e-aceite.md)
 - [Índice de RFCs, ADRs e documentação](docs/fase3/README.md)
 - [Arquitetura-alvo e diagramas de sequência](docs/fase3/arquitetura-alvo.md)
 - [Matriz de rotas e permissões](docs/fase3/matriz-rotas-permissoes.md)
@@ -96,6 +99,16 @@ Consulte a [matriz completa](docs/fase3/matriz-rotas-permissoes.md) e o Swagger.
 
 CI valida lint, tipos, testes, cobertura, integração, segurança, build e IaC. CD publica imagem imutável no ECR, executa migration controlada, seed idempotente em `hml`, rollout no EKS e smoke tests. Rollback usa o SHA da última imagem saudável; migrations seguem expand/contract e não são revertidas automaticamente.
 
+### Como executar o deploy
+
+1. Confirme que rede/EKS e RDS do ambiente já existem.
+2. No GitHub, abra **Actions → Deploy API → Run workflow**.
+3. Escolha `hml` ou `prod`; em produção, aguarde a aprovação do environment.
+4. Acompanhe build/push no ECR, migration, rollout, seed de `hml`, smoke test e publicação dos outputs.
+5. Use o SHA imutável e o artefato da execução como evidência/rollback.
+
+O workflow de deploy está funcional, mas a [auditoria dos requisitos](docs/fase3/matriz-conformidade.md) registra que o gatilho ainda é manual. A automação após CI de `homolog`/`main` é a principal lacuna técnica remanescente.
+
 ## Ambiente validado
 
 - Conta acadêmica: `982623100545`;
@@ -103,5 +116,6 @@ CI valida lint, tipos, testes, cobertura, integração, segurança, build e IaC.
 - API Gateway `hml`: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com>;
 - Swagger `hml`: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com/docs>;
 - evidência do fluxo protegido: <https://github.com/maypinheiro/oficina-auth-function/actions/runs/34617351925>.
+- dashboards: [API](https://app.datadoghq.com/dashboard/uhc-x7j-d3i), [Kubernetes](https://app.datadoghq.com/dashboard/cfp-bd3-ayn) e [Negócio](https://app.datadoghq.com/dashboard/i9b-paf-7z5).
 
 O endpoint depende de uma sessão ativa do AWS Academy Learner Lab. Produção está codificada e separada, mas sua criação depende das permissões e do orçamento acadêmico.

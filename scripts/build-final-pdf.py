@@ -10,6 +10,7 @@ from reportlab.platypus import KeepTogether, PageBreak, Paragraph, SimpleDocTemp
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "output" / "pdf" / "entrega-final-fase3.pdf"
+IMPLEMENTED_AND_VALIDATED = "Implementado e validado"
 
 
 def footer(canvas, document):
@@ -77,7 +78,7 @@ def main():
     bullets(["Dashboards versionados para API, Kubernetes e indicadores de negócio.", "Logs estruturados em JSON com correlationId e traceId.", "APM e traces HTTP/PostgreSQL, além de métricas DogStatsD.", "Monitores para disponibilidade, erros, latência, falhas de OS e saturação do HPA.", "Runbook versionado para diagnóstico, mitigação e rollback."])
 
     section("9. Checklist de requisitos")
-    checks = [["Requisito", "Situação"], ["Cloud pública e dois ambientes", "Implementado em Terraform; hml validado"], ["Banco gerenciado privado", "Implementado e validado"], ["Function serverless por CPF/JWT", "Implementado e validado"], ["API protegida por Gateway/Authorizer", "Implementado e validado"], ["Kubernetes cloud e HPA", "Implementado"], ["CI/CD e qualidade", "Implementado"], ["Datadog: logs, métricas e traces", "Implementado"], ["RFCs, ADRs e diagramas", "Implementado"], ["Vídeo de até 15 minutos", "Pendente de gravação/publicação"], ["URL do vídeo no PDF", "Pendente"]]
+    checks = [["Requisito", "Situação"], ["Cloud pública e dois ambientes", "Codificado; hml validado"], ["Banco gerenciado privado", IMPLEMENTED_AND_VALIDATED], ["Function serverless por CPF/JWT", IMPLEMENTED_AND_VALIDATED], ["API protegida por Gateway/Authorizer", IMPLEMENTED_AND_VALIDATED], ["Kubernetes cloud e HPA", "Implementado; falta captura do scaling"], ["CI e qualidade", IMPLEMENTED_AND_VALIDATED], ["CD homolog/prod", "Funcional, mas gatilho ainda manual"], ["Datadog: logs, métricas e traces", "Implementado; falta evidência no vídeo"], ["RFCs, ADRs e diagramas", "Implementado"], ["Main protegida", "Confirmado nos quatro repos"], ["soat-architecture", "Read confirmado nos quatro repos"], ["Vídeo de até 15 minutos", "Pendente de gravação/publicação"], ["URL do vídeo no PDF", "Pendente"]]
     ct = Table(checks, colWidths=[94 * mm, 66 * mm], repeatRows=1)
     ct.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#102A43")), ("TEXTCOLOR", (0, 0), (-1, 0), colors.white), ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"), ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BCCCDC")), ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F0F4F8")]), ("FONTSIZE", (0, 0), (-1, -1), 8.5), ("VALIGN", (0, 0), (-1, -1), "TOP")]))
     story += [ct]
@@ -87,7 +88,8 @@ def main():
         Paragraph("• Gravar e publicar o vídeo no YouTube ou Vimeo, público ou não listado.", styles["BodyClean"]),
         Paragraph("• Adicionar a URL do vídeo e regenerar este PDF.", styles["BodyClean"]),
         Paragraph("• Capturar no vídeo os cenários negativos, ciclo completo da OS, alerta Datadog e reação do HPA.", styles["BodyClean"]),
-        Paragraph("• Confirmar a política da banca para o usuário soat-architecture; os repositórios foram mantidos públicos conforme decisão do grupo.", styles["BodyClean"]),
+        Paragraph("• Automatizar o CD após CI de homolog e main; manter aprovação do environment de produção.", styles["BodyClean"]),
+        Paragraph("• Renovar a sessão AWS Academy e repetir o E2E antes da gravação.", styles["BodyClean"]),
     ]))
 
     section("11. Roteiro cronometrado do vídeo")
