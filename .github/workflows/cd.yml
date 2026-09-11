@@ -114,12 +114,26 @@ jobs:
           aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$AWS_REGION"
           sed -i "s/oficina-env/oficina-${{ inputs.environment }}/g; s/ENVIRONMENT/${{ inputs.environment }}/g; s/IMAGE_TAG/${IMAGE_TAG}/g; s|CORS_ORIGIN: \"CORS_ORIGIN\"|CORS_ORIGIN: \"${{ vars.CORS_ORIGIN }}\"|g" cloud-infra/k8s/*.yaml
       - name: Run controlled migration
+        shell: bash
         run: |
           kubectl apply -f cloud-infra/k8s/namespace.yaml
           kubectl apply -f cloud-infra/k8s/configmap.yaml -f cloud-infra/k8s/secret.yaml
+          if ! kubectl wait --for=condition=Ready \
+            externalsecret/oficina-api-secrets \
+            -n "oficina-${{ inputs.environment }}" --timeout=2m; then
+            kubectl describe clustersecretstore/aws-secrets-manager
+            kubectl describe externalsecret/oficina-api-secrets -n "oficina-${{ inputs.environment }}"
+            exit 1
+          fi
           kubectl delete job prisma-migrate -n "oficina-${{ inputs.environment }}" --ignore-not-found
           kubectl apply -f cloud-infra/k8s/prisma-job.yaml
-          kubectl wait --for=condition=complete job/prisma-migrate -n "oficina-${{ inputs.environment }}" --timeout=5m
+          if ! kubectl wait --for=condition=complete job/prisma-migrate \
+            -n "oficina-${{ inputs.environment }}" --timeout=5m; then
+            kubectl get pods -n "oficina-${{ inputs.environment }}" -o wide
+            kubectl describe job/prisma-migrate -n "oficina-${{ inputs.environment }}"
+            kubectl logs job/prisma-migrate -n "oficina-${{ inputs.environment }}" --all-containers --tail=200 || true
+            exit 1
+          fi
       - name: Deploy and verify rollout
         run: |
           kubectl apply -f cloud-infra/k8s/api.yaml -f cloud-infra/k8s/api-pdb.yaml -f cloud-infra/k8s/hpa.yaml
