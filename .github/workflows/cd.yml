@@ -188,6 +188,9 @@ jobs:
           kubectl apply -f cloud-infra/k8s/api.yaml -f cloud-infra/k8s/api-pdb.yaml -f cloud-infra/k8s/hpa.yaml
           kubectl rollout status deployment/oficina-api -n "oficina-${{ inputs.environment }}" --timeout=5m
           kubectl get deployment,pods,hpa -n "oficina-${{ inputs.environment }}" -o wide
+      - name: Seed homologation data
+        if: inputs.environment == 'hml'
+        run: kubectl exec deployment/oficina-api -n "oficina-${{ inputs.environment }}" -- npm run db:seed:ts
       - name: Smoke test through port-forward
         run: |
           kubectl port-forward -n "oficina-${{ inputs.environment }}" service/oficina-api 8080:80 >/tmp/port-forward.log 2>&1 &
