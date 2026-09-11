@@ -166,3 +166,40 @@ jobs:
           for attempt in {1..12}; do curl --fail http://127.0.0.1:8080/health && exit 0; sleep 5; done
           cat /tmp/port-forward.log
           exit 1
+      - name: Export internal load balancer outputs
+        shell: bash
+        run: |
+          NAMESPACE="oficina-${{ inputs.environment }}"
+          for attempt in {1..60}; do
+            LB_HOSTNAME="$(kubectl get service oficina-api -n "$NAMESPACE" \
+              -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
+            [[ -n "$LB_HOSTNAME" ]] && break
+            sleep 10
+          done
+          if [[ -z "${LB_HOSTNAME:-}" ]]; then
+            kubectl describe service oficina-api -n "$NAMESPACE"
+            exit 1
+          fi
+
+          LB_ARN="$(aws elbv2 describe-load-balancers \
+            --query "LoadBalancers[?DNSName=='$LB_HOSTNAME'].LoadBalancerArn | [0]" \
+            --output text)"
+          LISTENER_ARN="$(aws elbv2 describe-listeners \
+            --load-balancer-arn "$LB_ARN" \
+            --query 'Listeners[?Port==`80`].ListenerArn | [0]' \
+            --output text)"
+          if [[ -z "$LISTENER_ARN" || "$LISTENER_ARN" == "None" ]]; then
+            aws elbv2 describe-listeners --load-balancer-arn "$LB_ARN"
+            exit 1
+          fi
+
+          jq --null-input \
+            --arg hostname "$LB_HOSTNAME" \
+            --arg loadBalancerArn "$LB_ARN" \
+            --arg listenerArn "$LISTENER_ARN" \
+            '{hostname: $hostname, loadBalancerArn: $loadBalancerArn, listenerArn: $listenerArn}' \
+            > deployment-outputs.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: api-deployment-${{ inputs.environment }}-${{ github.sha }}
+          path: deployment-outputs.json
