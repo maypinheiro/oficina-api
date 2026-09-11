@@ -42,6 +42,13 @@ jobs:
       - name: Authorize this runner on the EKS public endpoint
         shell: bash
         run: |
+          for UPDATE_ID in $(aws eks list-updates --name "$CLUSTER_NAME" --region "$AWS_REGION" --query 'updateIds' --output text); do
+            UPDATE_STATUS="$(aws eks describe-update --name "$CLUSTER_NAME" --region "$AWS_REGION" \
+              --update-id "$UPDATE_ID" --query 'update.status' --output text)"
+            if [[ "$UPDATE_STATUS" == "InProgress" ]]; then
+              aws eks wait update-successful --name "$CLUSTER_NAME" --region "$AWS_REGION" --update-id "$UPDATE_ID"
+            fi
+          done
           RUNNER_CIDR="$(curl --fail --silent --show-error https://checkip.amazonaws.com)/32"
           CURRENT_CIDRS="$(aws eks describe-cluster \
             --name "$CLUSTER_NAME" \
@@ -55,11 +62,14 @@ jobs:
           VPC_CONFIG="$(jq --compact-output --null-input \
             --argjson cidrs "$MERGED_CIDRS" \
             '{endpointPublicAccess: true, publicAccessCidrs: $cidrs}')"
-          aws eks update-cluster-config \
-            --name "$CLUSTER_NAME" \
-            --region "$AWS_REGION" \
-            --resources-vpc-config "$VPC_CONFIG"
-          aws eks wait cluster-active --name "$CLUSTER_NAME" --region "$AWS_REGION"
+          if UPDATE_JSON="$(aws eks update-cluster-config --name "$CLUSTER_NAME" \
+            --region "$AWS_REGION" --resources-vpc-config "$VPC_CONFIG" 2>&1)"; then
+            UPDATE_ID="$(jq --raw-output '.update.id' <<< "$UPDATE_JSON")"
+            aws eks wait update-successful --name "$CLUSTER_NAME" --region "$AWS_REGION" --update-id "$UPDATE_ID"
+          elif [[ "$UPDATE_JSON" != *"already at the desired configuration"* ]]; then
+            echo "$UPDATE_JSON" >&2
+            exit 1
+          fi
       - name: Bootstrap authentication secrets
         shell: bash
         run: |
@@ -116,20 +126,6 @@ jobs:
       - name: Run controlled migration
         shell: bash
         run: |
-          RUNNER_CIDR="$(curl --fail --silent --show-error https://checkip.amazonaws.com)/32"
-          CURRENT_CIDRS="$(aws eks describe-cluster --name "$CLUSTER_NAME" --region "$AWS_REGION" \
-            --query 'cluster.resourcesVpcConfig.publicAccessCidrs' --output json)"
-          VPC_CONFIG="$(jq --compact-output --null-input \
-            --argjson current "$CURRENT_CIDRS" --arg runner "$RUNNER_CIDR" \
-            '{endpointPublicAccess: true, publicAccessCidrs: ($current + [$runner] | unique)}')"
-          if ! UPDATE_RESULT="$(aws eks update-cluster-config --name "$CLUSTER_NAME" \
-            --region "$AWS_REGION" --resources-vpc-config "$VPC_CONFIG" 2>&1)"; then
-            if [[ "$UPDATE_RESULT" != *"already at the desired configuration"* ]]; then
-              echo "$UPDATE_RESULT" >&2
-              exit 1
-            fi
-          fi
-          aws eks wait cluster-active --name "$CLUSTER_NAME" --region "$AWS_REGION"
           kubectl create secret generic aws-academy-credentials \
             --namespace external-secrets \
             --from-literal=access-key-id="$AWS_ACCESS_KEY_ID" \
