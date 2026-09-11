@@ -67,6 +67,9 @@ na RFC de autenticação. CPF completo e JWT nunca devem aparecer nos logs.
 ## Documentos desta etapa
 
 - `entrega-tecnica.md`: objetivos, escopo entregue, mapa integrado e evidências;
+- `matriz-conformidade.md`: auditoria item a item contra o enunciado oficial;
+- `catalogo-evidencias.md`: runs, dashboards, proteção de branches e arquivos que comprovam a entrega;
+- `guia-demonstracao-e-aceite.md`: preparação do laboratório e roteiro verificável de demonstração;
 - `rfc-001-aws.md`: escolha da nuvem e topologia dos ambientes;
 - `rfc-002-postgresql-rds.md`: banco e acesso privado;
 - `rfc-003-autenticacao.md`: CPF, JWT, Authorizer e funcionários;
