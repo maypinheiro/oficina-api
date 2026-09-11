@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5; NOSONAR - trusted push branches only
         with:
           ref: ${{ env.DEPLOY_REF }}
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5; NOSONAR - fixed repository and trusted environment branch
         with:
           repository: maypinheiro/oficina-k8s-infra
           ref: ${{ env.DEPLOY_ENV == 'prod' && 'main' || 'homolog' }}
