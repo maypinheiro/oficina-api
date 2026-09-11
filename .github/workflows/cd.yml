@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           repository: maypinheiro/oficina-k8s-infra
-          ref: develop
+          ref: ${{ inputs.environment == 'prod' && 'main' || 'homolog' }}
           path: cloud-infra
       - uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
         with:
@@ -39,30 +39,217 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - id: ecr
         uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2
+      - name: Authorize this runner on the EKS public endpoint
+        shell: bash
+        run: |
+          wait_for_update() {
+            local update_id="$1"
+            for attempt in {1..60}; do
+              local status
+              status="$(aws eks describe-update --name "$CLUSTER_NAME" --region "$AWS_REGION" \
+                --update-id "$update_id" --query 'update.status' --output text)"
+              [[ "$status" == "Successful" ]] && return 0
+              if [[ "$status" == "Failed" || "$status" == "Cancelled" ]]; then
+                echo "EKS update $update_id terminou com status $status" >&2
+                return 1
+              fi
+              sleep 10
+            done
+            echo "Timeout aguardando EKS update $update_id" >&2
+            return 1
+          }
+          for UPDATE_ID in $(aws eks list-updates --name "$CLUSTER_NAME" --region "$AWS_REGION" --query 'updateIds' --output text); do
+            UPDATE_STATUS="$(aws eks describe-update --name "$CLUSTER_NAME" --region "$AWS_REGION" \
+              --update-id "$UPDATE_ID" --query 'update.status' --output text)"
+            if [[ "$UPDATE_STATUS" == "InProgress" ]]; then
+              wait_for_update "$UPDATE_ID"
+            fi
+          done
+          RUNNER_CIDR="$(curl --fail --silent --show-error https://checkip.amazonaws.com)/32"
+          CURRENT_CIDRS="$(aws eks describe-cluster \
+            --name "$CLUSTER_NAME" \
+            --region "$AWS_REGION" \
+            --query 'cluster.resourcesVpcConfig.publicAccessCidrs' \
+            --output json)"
+          MERGED_CIDRS="$(jq --compact-output --null-input \
+            --argjson current "$CURRENT_CIDRS" \
+            --arg runner "$RUNNER_CIDR" \
+            '$current + [$runner] | unique')"
+          VPC_CONFIG="$(jq --compact-output --null-input \
+            --argjson cidrs "$MERGED_CIDRS" \
+            '{endpointPublicAccess: true, publicAccessCidrs: $cidrs}')"
+          if UPDATE_JSON="$(aws eks update-cluster-config --name "$CLUSTER_NAME" \
+            --region "$AWS_REGION" --resources-vpc-config "$VPC_CONFIG" 2>&1)"; then
+            UPDATE_ID="$(jq --raw-output '.update.id' <<< "$UPDATE_JSON")"
+            wait_for_update "$UPDATE_ID"
+          elif [[ "$UPDATE_JSON" != *"already at the desired configuration"* ]]; then
+            echo "$UPDATE_JSON" >&2
+            exit 1
+          fi
+      - name: Bootstrap authentication secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          ENVIRONMENT="${{ inputs.environment }}"
+          ADMIN_SECRET="oficina-${ENVIRONMENT}/api/admin-auth"
+          PRIVATE_SECRET="oficina-${ENVIRONMENT}/auth/signing-private"
+          PUBLIC_SECRET="oficina-${ENVIRONMENT}/auth/signing-public"
+          TEMP_DIR="$(mktemp -d)"
+          trap 'rm -rf "$TEMP_DIR"' EXIT
+
+          if ! aws secretsmanager describe-secret --secret-id "$ADMIN_SECRET" >/dev/null 2>&1; then
+            ADMIN_JWT_SECRET="$(openssl rand -hex 32)"
+            jq --null-input --arg value "$ADMIN_JWT_SECRET" '{JWT_SECRET: $value}' \
+              > "$TEMP_DIR/admin.json"
+            aws secretsmanager create-secret \
+              --name "$ADMIN_SECRET" \
+              --description "Autenticacao administrativa separada da API Oficina" \
+              --secret-string "file://$TEMP_DIR/admin.json" >/dev/null
+          fi
+
+          if ! aws secretsmanager describe-secret --secret-id "$PRIVATE_SECRET" >/dev/null 2>&1; then
+            openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 \
+              -out "$TEMP_DIR/private.pem" 2>/dev/null
+            openssl pkey -in "$TEMP_DIR/private.pem" -pubout \
+              -out "$TEMP_DIR/public.pem" 2>/dev/null
+            KEY_ID="oficina-${ENVIRONMENT}-$(date +%Y%m%d)"
+            jq --null-input \
+              --rawfile privateKeyPem "$TEMP_DIR/private.pem" \
+              --arg keyId "$KEY_ID" \
+              '{privateKeyPem: $privateKeyPem, keyId: $keyId}' \
+              > "$TEMP_DIR/private.json"
+            PUBLIC_KEY_BASE64="$(base64 -w 0 "$TEMP_DIR/public.pem")"
+            jq --null-input --arg value "$PUBLIC_KEY_BASE64" \
+              '{JWT_PUBLIC_KEY_BASE64: $value}' > "$TEMP_DIR/public.json"
+            aws secretsmanager create-secret \
+              --name "$PRIVATE_SECRET" \
+              --description "Chave privada RSA da autenticacao de clientes" \
+              --secret-string "file://$TEMP_DIR/private.json" >/dev/null
+            aws secretsmanager create-secret \
+              --name "$PUBLIC_SECRET" \
+              --description "Chave publica RSA consumida pela API" \
+              --secret-string "file://$TEMP_DIR/public.json" >/dev/null
+          fi
       - name: Build and push immutable image
         run: |
           IMAGE_URI=${{ steps.ecr.outputs.registry }}/oficina-api:${IMAGE_TAG}
-          docker build --tag "$IMAGE_URI" .
-          docker push "$IMAGE_URI"
+          if aws ecr describe-images --repository-name oficina-api --image-ids imageTag="$IMAGE_TAG" >/dev/null 2>&1; then
+            echo "Immutable image $IMAGE_TAG already exists; reusing it."
+          else
+            docker build --tag "$IMAGE_URI" .
+            docker push "$IMAGE_URI"
+          fi
       - name: Configure cluster and render manifests
         run: |
           aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$AWS_REGION"
-          sed -i "s/oficina-env/oficina-${{ inputs.environment }}/g; s/ENVIRONMENT/${{ inputs.environment }}/g; s/IMAGE_TAG/${IMAGE_TAG}/g; s|CORS_ORIGIN|${{ vars.CORS_ORIGIN }}|g" cloud-infra/k8s/*.yaml
+          sed -i "s/oficina-env/oficina-${{ inputs.environment }}/g; s/ENVIRONMENT/${{ inputs.environment }}/g; s/IMAGE_TAG/${IMAGE_TAG}/g; s|CORS_ORIGIN: \"CORS_ORIGIN\"|CORS_ORIGIN: \"${{ vars.CORS_ORIGIN }}\"|g" cloud-infra/k8s/*.yaml
       - name: Run controlled migration
+        shell: bash
         run: |
+          kubectl create secret generic aws-academy-credentials \
+            --namespace external-secrets \
+            --from-literal=access-key-id="$AWS_ACCESS_KEY_ID" \
+            --from-literal=secret-access-key="$AWS_SECRET_ACCESS_KEY" \
+            --from-literal=session-token="$AWS_SESSION_TOKEN" \
+            --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create secret generic aws-academy-credentials \
+            --namespace kube-system \
+            --from-literal=AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
+            --from-literal=AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
+            --from-literal=AWS_SESSION_TOKEN="$AWS_SESSION_TOKEN" \
+            --dry-run=client -o yaml | kubectl apply -f -
+          kubectl rollout restart deployment/external-secrets \
+            deployment/external-secrets-cert-controller \
+            deployment/external-secrets-webhook \
+            --namespace external-secrets
+          kubectl rollout status deployment/external-secrets \
+            --namespace external-secrets --timeout=5m
+          kubectl set env deployment/aws-load-balancer-controller \
+            --namespace kube-system --from=secret/aws-academy-credentials
+          kubectl rollout status deployment/aws-load-balancer-controller \
+            --namespace kube-system --timeout=5m
+          kubectl apply -f cloud-infra/k8s/cluster-secret-store.yaml
           kubectl apply -f cloud-infra/k8s/namespace.yaml
           kubectl apply -f cloud-infra/k8s/configmap.yaml -f cloud-infra/k8s/secret.yaml
+          if ! kubectl wait --for=condition=Ready \
+            externalsecret/oficina-api-secrets \
+            -n "oficina-${{ inputs.environment }}" --timeout=2m; then
+            kubectl describe clustersecretstore/aws-secrets-manager
+            kubectl describe externalsecret/oficina-api-secrets -n "oficina-${{ inputs.environment }}"
+            exit 1
+          fi
           kubectl delete job prisma-migrate -n "oficina-${{ inputs.environment }}" --ignore-not-found
           kubectl apply -f cloud-infra/k8s/prisma-job.yaml
-          kubectl wait --for=condition=complete job/prisma-migrate -n "oficina-${{ inputs.environment }}" --timeout=5m
+          if ! kubectl wait --for=condition=complete job/prisma-migrate \
+            -n "oficina-${{ inputs.environment }}" --timeout=5m; then
+            kubectl get pods -n "oficina-${{ inputs.environment }}" -o wide
+            kubectl describe job/prisma-migrate -n "oficina-${{ inputs.environment }}"
+            kubectl logs job/prisma-migrate -n "oficina-${{ inputs.environment }}" --all-containers --tail=200 || true
+            exit 1
+          fi
       - name: Deploy and verify rollout
         run: |
           kubectl apply -f cloud-infra/k8s/api.yaml -f cloud-infra/k8s/api-pdb.yaml -f cloud-infra/k8s/hpa.yaml
           kubectl rollout status deployment/oficina-api -n "oficina-${{ inputs.environment }}" --timeout=5m
           kubectl get deployment,pods,hpa -n "oficina-${{ inputs.environment }}" -o wide
+      - name: Seed homologation data
+        if: inputs.environment == 'hml'
+        run: kubectl exec deployment/oficina-api -n "oficina-${{ inputs.environment }}" -- npm run db:seed:ts
       - name: Smoke test through port-forward
         run: |
           kubectl port-forward -n "oficina-${{ inputs.environment }}" service/oficina-api 8080:80 >/tmp/port-forward.log 2>&1 &
           for attempt in {1..12}; do curl --fail http://127.0.0.1:8080/health && exit 0; sleep 5; done
           cat /tmp/port-forward.log
           exit 1
+      - name: Export internal load balancer outputs
+        shell: bash
+        run: |
+          NAMESPACE="oficina-${{ inputs.environment }}"
+          for attempt in {1..60}; do
+            LB_HOSTNAME="$(kubectl get service oficina-api -n "$NAMESPACE" \
+              -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
+            [[ -n "$LB_HOSTNAME" ]] && break
+            sleep 10
+          done
+          if [[ -z "${LB_HOSTNAME:-}" ]]; then
+            kubectl describe service oficina-api -n "$NAMESPACE"
+            exit 1
+          fi
+
+          LB_ARN="$(aws elbv2 describe-load-balancers \
+            --query "LoadBalancers[?DNSName=='$LB_HOSTNAME'].LoadBalancerArn | [0]" \
+            --output text)"
+          LISTENER_ARN="$(aws elbv2 describe-listeners \
+            --load-balancer-arn "$LB_ARN" \
+            --query 'Listeners[?Port==`80`].ListenerArn | [0]' \
+            --output text)"
+          if [[ -z "$LISTENER_ARN" || "$LISTENER_ARN" == "None" ]]; then
+            aws elbv2 describe-listeners --load-balancer-arn "$LB_ARN"
+            exit 1
+          fi
+
+          DATADOG_SECRET_NAME="oficina-${{ inputs.environment }}/datadog/api-key"
+          DATADOG_API_KEY="$(kubectl get secret datadog-secret -n datadog \
+            -o jsonpath='{.data.api-key}' | base64 --decode)"
+          if DATADOG_SECRET_ARN="$(aws secretsmanager describe-secret \
+            --secret-id "$DATADOG_SECRET_NAME" --query ARN --output text 2>/dev/null)"; then
+            aws secretsmanager put-secret-value --secret-id "$DATADOG_SECRET_NAME" \
+              --secret-string "$DATADOG_API_KEY" >/dev/null
+          else
+            DATADOG_SECRET_ARN="$(aws secretsmanager create-secret \
+              --name "$DATADOG_SECRET_NAME" \
+              --description "Datadog API key para instrumentacao das Lambdas" \
+              --secret-string "$DATADOG_API_KEY" --query ARN --output text)"
+          fi
+
+          jq --null-input \
+            --arg hostname "$LB_HOSTNAME" \
+            --arg loadBalancerArn "$LB_ARN" \
+            --arg listenerArn "$LISTENER_ARN" \
+            --arg datadogApiKeySecretArn "$DATADOG_SECRET_ARN" \
+            '{hostname: $hostname, loadBalancerArn: $loadBalancerArn, listenerArn: $listenerArn, datadogApiKeySecretArn: $datadogApiKeySecretArn}' \
+            > deployment-outputs.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: api-deployment-${{ inputs.environment }}-${{ github.sha }}
+          path: deployment-outputs.json

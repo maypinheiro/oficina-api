@@ -1,11 +1,12 @@
-# Fase 3 — Definições arquiteturais
+# Fase 3 — Arquitetura, implementação e entrega
 
-Status: **aprovado para implementação**  
-Última revisão: 2026-09-08
+Status: **implementada e validada em homologação**
+Última revisão: 2026-09-11
 
-Este diretório consolida a primeira etapa da Fase 3. O documento oficial da
-fase continua sendo `../definicoesFase3.md`, complementado por
-`../explicacaoProfessorFase3.md`.
+Este diretório consolida requisitos, decisões, arquitetura, operação e evidências
+da Fase 3. O enunciado está em `../definicoesFase3.md`, complementado por
+`../explicacaoProfessorFase3.md`. A visão do que foi efetivamente entregue está
+em [entrega-tecnica.md](entrega-tecnica.md).
 
 ## Decisões consolidadas
 
@@ -21,13 +22,13 @@ fase continua sendo `../definicoesFase3.md`, complementado por
 | Autenticação do cliente | CPF validado por AWS Lambda, consulta ao RDS e emissão de JWT |
 | Validação do JWT | Lambda Authorizer no API Gateway, com cache curto |
 | Assinatura | JWT assimétrico `RS256`; chave privada no Secrets Manager e chave pública disponível ao Authorizer |
-| Funcionários | Identidade separada no Amazon Cognito, com grupos/papéis administrativos |
+| Funcionários | Autenticação administrativa separada; Cognito é evolução recomendada, não implantada |
 | Banco | Amazon RDS for PostgreSQL, privado e fora do EKS |
 | Acesso ao banco | Lambda e EKS na VPC; Security Groups aceitam PostgreSQL somente dessas origens |
 | Kubernetes | Amazon EKS com Managed Node Groups e HPA |
 | Segredos | AWS Secrets Manager; configurações não sensíveis em Parameter Store/ConfigMap |
 | Imagens | Amazon ECR, com tags imutáveis pelo SHA do commit |
-| IaC | Terraform com estado remoto S3 e locking nativo do backend S3 |
+| IaC | Terraform com estado remoto S3 e locking em DynamoDB |
 
 ## Ambientes e promoção
 
@@ -55,8 +56,9 @@ As identidades são separadas:
   limitados às operações do próprio cliente;
 - funcionário: Cognito User Pool, credencial individual e grupos como
   `atendimento`, `mecanico` e `admin`;
-- serviço: IAM Roles for Service Accounts (IRSA) e IAM roles da Lambda, sem
-  credenciais AWS estáticas.
+- serviço: em uma conta regular seriam usados IRSA/OIDC e roles dedicadas. No
+  Learner Lab, controllers e pipelines usam `LabRole` e credenciais STS
+  temporárias, nunca versionadas.
 
 O fato de conhecer um CPF não representa autenticação forte em uma solução
 real. O risco é aceito exclusivamente para cumprir o enunciado e está registrado
@@ -64,6 +66,7 @@ na RFC de autenticação. CPF completo e JWT nunca devem aparecer nos logs.
 
 ## Documentos desta etapa
 
+- `entrega-tecnica.md`: objetivos, escopo entregue, mapa integrado e evidências;
 - `rfc-001-aws.md`: escolha da nuvem e topologia dos ambientes;
 - `rfc-002-postgresql-rds.md`: banco e acesso privado;
 - `rfc-003-autenticacao.md`: CPF, JWT, Authorizer e funcionários;
@@ -77,14 +80,16 @@ na RFC de autenticação. CPF completo e JWT nunca devem aparecer nos logs.
 - `arquitetura-alvo.md`: visão de componentes e fluxos principais.
 - `modelo-dados.md`: modelo ER, índices, integridade e justificativa relacional.
 - `rfc-005-aws-academy-learner-lab.md`: limitações da conta acadêmica e contingências.
+- `roteiro-video-final.md`: roteiro cronometrado da demonstração de até 15 minutos;
+- `entrega-final.md`: índice para o PDF e submissão final.
 
-## Próximo gate
+## Evidências atuais
 
-Antes de provisionar recursos pagos:
+- EKS e controllers: <https://github.com/maypinheiro/oficina-k8s-infra/actions/runs/34616729840>
+- autenticação e integração privada: <https://github.com/maypinheiro/oficina-auth-function/actions/runs/34617351925>
+- API Gateway de homologação: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com>
+- Swagger: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com/docs>
 
-1. instalar/configurar AWS CLI e iniciar uma sessão do Learner Lab;
-2. executar a matriz de permissões da RFC-005;
-3. confirmar saldo e data de expiração do laboratório;
-4. criar budgets e alertas, se a role permitir;
-5. configurar OIDC se permitido; caso contrário, usar a contingência de
-   credenciais temporárias sem versioná-las.
+Os endpoints dependem de uma sessão ativa do Learner Lab. Antes de uma nova
+demonstração, renove os secrets dos GitHub Environments e execute o
+provisionamento dos controllers para atualizar a sessão utilizada dentro do EKS.
