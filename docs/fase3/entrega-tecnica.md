@@ -115,6 +115,8 @@ CI valida lint, tipos, testes, cobertura, integração, segurança, build e IaC.
 - RFCs, ADRs, arquitetura de componentes e sequências.
 - Quatro repositórios públicos com responsabilidades separadas.
 
+Para evitar que esta visão executiva esconda lacunas, consulte a [matriz de conformidade](matriz-conformidade.md). Ela diferencia requisito implementado, evidência executada e ação ainda pendente. Na auditoria de 11/09/2026, a principal lacuna técnica encontrada foi o gatilho manual dos workflows de CD; vídeo, evidência visual de HPA/Datadog e URL no PDF também dependem de conclusão.
+
 ## Limitações e transparência acadêmica
 
 A conta `982623100545` é um AWS Academy Learner Lab. Credenciais STS expiram, `LabRole` restringe IAM e alguns serviços, e recursos podem ser interrompidos ao final da sessão. Por isso:
@@ -131,6 +133,10 @@ A conta `982623100545` é um AWS Academy Learner Lab. Credenciais STS expiram, `
 - JWT, Authorizer, Gateway, VPC Link, NLB e rota protegida: <https://github.com/maypinheiro/oficina-auth-function/actions/runs/34617351925>
 - Endpoint de homologação: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com>
 - Swagger de homologação: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com/docs>
+- Dashboard da API: <https://app.datadoghq.com/dashboard/uhc-x7j-d3i>
+- Dashboard Kubernetes: <https://app.datadoghq.com/dashboard/cfp-bd3-ayn>
+- Dashboard de negócio: <https://app.datadoghq.com/dashboard/i9b-paf-7z5>
+- Proteção de `main` e `soat-architecture`: confirmados nos quatro repositórios pela API do GitHub em 11/09/2026.
 
 O endpoint depende de uma sessão ativa do Learner Lab e pode não responder fora da janela acadêmica.
 
@@ -146,3 +152,6 @@ O endpoint depende de uma sessão ativa do Learner Lab e pode não responder for
 - [Estimativa de custos](estimativa-custos.md)
 - [Roteiro do vídeo](roteiro-video-final.md)
 - [Entrega final](entrega-final.md)
+- [Matriz de conformidade](matriz-conformidade.md)
+- [Catálogo de evidências](catalogo-evidencias.md)
+- [Guia de demonstração e aceite](guia-demonstracao-e-aceite.md)
