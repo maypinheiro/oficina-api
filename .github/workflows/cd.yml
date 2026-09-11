@@ -116,6 +116,13 @@ jobs:
       - name: Run controlled migration
         shell: bash
         run: |
+          kubectl create secret generic aws-academy-credentials \
+            --namespace external-secrets \
+            --from-literal=access-key-id="$AWS_ACCESS_KEY_ID" \
+            --from-literal=secret-access-key="$AWS_SECRET_ACCESS_KEY" \
+            --from-literal=session-token="$AWS_SESSION_TOKEN" \
+            --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -f cloud-infra/k8s/cluster-secret-store.yaml
           kubectl apply -f cloud-infra/k8s/namespace.yaml
           kubectl apply -f cloud-infra/k8s/configmap.yaml -f cloud-infra/k8s/secret.yaml
           if ! kubectl wait --for=condition=Ready \
