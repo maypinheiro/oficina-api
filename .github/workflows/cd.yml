@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           repository: maypinheiro/oficina-k8s-infra
-          ref: develop
+          ref: ${{ inputs.environment == 'prod' && 'main' || 'homolog' }}
           path: cloud-infra
       - uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
         with:
@@ -60,6 +60,50 @@ jobs:
             --region "$AWS_REGION" \
             --resources-vpc-config "$VPC_CONFIG"
           aws eks wait cluster-active --name "$CLUSTER_NAME" --region "$AWS_REGION"
+      - name: Bootstrap authentication secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          ENVIRONMENT="${{ inputs.environment }}"
+          ADMIN_SECRET="oficina-${ENVIRONMENT}/api/admin-auth"
+          PRIVATE_SECRET="oficina-${ENVIRONMENT}/auth/signing-private"
+          PUBLIC_SECRET="oficina-${ENVIRONMENT}/auth/signing-public"
+          TEMP_DIR="$(mktemp -d)"
+          trap 'rm -rf "$TEMP_DIR"' EXIT
+
+          if ! aws secretsmanager describe-secret --secret-id "$ADMIN_SECRET" >/dev/null 2>&1; then
+            ADMIN_JWT_SECRET="$(openssl rand -hex 32)"
+            jq --null-input --arg value "$ADMIN_JWT_SECRET" '{JWT_SECRET: $value}' \
+              > "$TEMP_DIR/admin.json"
+            aws secretsmanager create-secret \
+              --name "$ADMIN_SECRET" \
+              --description "Autenticacao administrativa separada da API Oficina" \
+              --secret-string "file://$TEMP_DIR/admin.json" >/dev/null
+          fi
+
+          if ! aws secretsmanager describe-secret --secret-id "$PRIVATE_SECRET" >/dev/null 2>&1; then
+            openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 \
+              -out "$TEMP_DIR/private.pem" 2>/dev/null
+            openssl pkey -in "$TEMP_DIR/private.pem" -pubout \
+              -out "$TEMP_DIR/public.pem" 2>/dev/null
+            KEY_ID="oficina-${ENVIRONMENT}-$(date +%Y%m%d)"
+            jq --null-input \
+              --rawfile privateKeyPem "$TEMP_DIR/private.pem" \
+              --arg keyId "$KEY_ID" \
+              '{privateKeyPem: $privateKeyPem, keyId: $keyId}' \
+              > "$TEMP_DIR/private.json"
+            PUBLIC_KEY_BASE64="$(base64 -w 0 "$TEMP_DIR/public.pem")"
+            jq --null-input --arg value "$PUBLIC_KEY_BASE64" \
+              '{JWT_PUBLIC_KEY_BASE64: $value}' > "$TEMP_DIR/public.json"
+            aws secretsmanager create-secret \
+              --name "$PRIVATE_SECRET" \
+              --description "Chave privada RSA da autenticacao de clientes" \
+              --secret-string "file://$TEMP_DIR/private.json" >/dev/null
+            aws secretsmanager create-secret \
+              --name "$PUBLIC_SECRET" \
+              --description "Chave publica RSA consumida pela API" \
+              --secret-string "file://$TEMP_DIR/public.json" >/dev/null
+          fi
       - name: Build and push immutable image
         run: |
           IMAGE_URI=${{ steps.ecr.outputs.registry }}/oficina-api:${IMAGE_TAG}
