@@ -215,11 +215,26 @@ jobs:
             exit 1
           fi
 
+          DATADOG_SECRET_NAME="oficina-${{ inputs.environment }}/datadog/api-key"
+          DATADOG_API_KEY="$(kubectl get secret datadog-secret -n datadog \
+            -o jsonpath='{.data.api-key}' | base64 --decode)"
+          if DATADOG_SECRET_ARN="$(aws secretsmanager describe-secret \
+            --secret-id "$DATADOG_SECRET_NAME" --query ARN --output text 2>/dev/null)"; then
+            aws secretsmanager put-secret-value --secret-id "$DATADOG_SECRET_NAME" \
+              --secret-string "$DATADOG_API_KEY" >/dev/null
+          else
+            DATADOG_SECRET_ARN="$(aws secretsmanager create-secret \
+              --name "$DATADOG_SECRET_NAME" \
+              --description "Datadog API key para instrumentacao das Lambdas" \
+              --secret-string "$DATADOG_API_KEY" --query ARN --output text)"
+          fi
+
           jq --null-input \
             --arg hostname "$LB_HOSTNAME" \
             --arg loadBalancerArn "$LB_ARN" \
             --arg listenerArn "$LISTENER_ARN" \
-            '{hostname: $hostname, loadBalancerArn: $loadBalancerArn, listenerArn: $listenerArn}' \
+            --arg datadogApiKeySecretArn "$DATADOG_SECRET_ARN" \
+            '{hostname: $hostname, loadBalancerArn: $loadBalancerArn, listenerArn: $listenerArn, datadogApiKeySecretArn: $datadogApiKeySecretArn}' \
             > deployment-outputs.json
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
