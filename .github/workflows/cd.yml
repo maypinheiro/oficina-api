@@ -42,11 +42,27 @@ jobs:
       - name: Authorize this runner on the EKS public endpoint
         shell: bash
         run: |
+          wait_for_update() {
+            local update_id="$1"
+            for attempt in {1..60}; do
+              local status
+              status="$(aws eks describe-update --name "$CLUSTER_NAME" --region "$AWS_REGION" \
+                --update-id "$update_id" --query 'update.status' --output text)"
+              [[ "$status" == "Successful" ]] && return 0
+              if [[ "$status" == "Failed" || "$status" == "Cancelled" ]]; then
+                echo "EKS update $update_id terminou com status $status" >&2
+                return 1
+              fi
+              sleep 10
+            done
+            echo "Timeout aguardando EKS update $update_id" >&2
+            return 1
+          }
           for UPDATE_ID in $(aws eks list-updates --name "$CLUSTER_NAME" --region "$AWS_REGION" --query 'updateIds' --output text); do
             UPDATE_STATUS="$(aws eks describe-update --name "$CLUSTER_NAME" --region "$AWS_REGION" \
               --update-id "$UPDATE_ID" --query 'update.status' --output text)"
             if [[ "$UPDATE_STATUS" == "InProgress" ]]; then
-              aws eks wait update-successful --name "$CLUSTER_NAME" --region "$AWS_REGION" --update-id "$UPDATE_ID"
+              wait_for_update "$UPDATE_ID"
             fi
           done
           RUNNER_CIDR="$(curl --fail --silent --show-error https://checkip.amazonaws.com)/32"
@@ -65,7 +81,7 @@ jobs:
           if UPDATE_JSON="$(aws eks update-cluster-config --name "$CLUSTER_NAME" \
             --region "$AWS_REGION" --resources-vpc-config "$VPC_CONFIG" 2>&1)"; then
             UPDATE_ID="$(jq --raw-output '.update.id' <<< "$UPDATE_JSON")"
-            aws eks wait update-successful --name "$CLUSTER_NAME" --region "$AWS_REGION" --update-id "$UPDATE_ID"
+            wait_for_update "$UPDATE_ID"
           elif [[ "$UPDATE_JSON" != *"already at the desired configuration"* ]]; then
             echo "$UPDATE_JSON" >&2
             exit 1
