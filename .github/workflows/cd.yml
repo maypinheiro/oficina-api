@@ -122,8 +122,13 @@ jobs:
           VPC_CONFIG="$(jq --compact-output --null-input \
             --argjson current "$CURRENT_CIDRS" --arg runner "$RUNNER_CIDR" \
             '{endpointPublicAccess: true, publicAccessCidrs: ($current + [$runner] | unique)}')"
-          aws eks update-cluster-config --name "$CLUSTER_NAME" --region "$AWS_REGION" \
-            --resources-vpc-config "$VPC_CONFIG" >/dev/null
+          if ! UPDATE_RESULT="$(aws eks update-cluster-config --name "$CLUSTER_NAME" \
+            --region "$AWS_REGION" --resources-vpc-config "$VPC_CONFIG" 2>&1)"; then
+            if [[ "$UPDATE_RESULT" != *"already at the desired configuration"* ]]; then
+              echo "$UPDATE_RESULT" >&2
+              exit 1
+            fi
+          fi
           aws eks wait cluster-active --name "$CLUSTER_NAME" --region "$AWS_REGION"
           kubectl create secret generic aws-academy-credentials \
             --namespace external-secrets \
