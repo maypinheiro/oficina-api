@@ -1,6 +1,10 @@
 name: Deploy API
 
 on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [homolog, main]
   workflow_dispatch:
     inputs:
       environment:
@@ -13,23 +17,29 @@ permissions:
   contents: read
 
 concurrency:
-  group: oficina-api-${{ inputs.environment }}
+  group: oficina-api-${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.event.workflow_run.head_branch == 'main' && 'prod' || 'hml') }}
   cancel-in-progress: false
 
 jobs:
   deploy:
-    environment: ${{ inputs.environment }}
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success')
+    environment:
+      name: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.event.workflow_run.head_branch == 'main' && 'prod' || 'hml') }}
     runs-on: ubuntu-latest
     env:
       AWS_REGION: us-east-1
-      CLUSTER_NAME: oficina-${{ inputs.environment }}
-      IMAGE_TAG: ${{ github.sha }}
+      DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.event.workflow_run.head_branch == 'main' && 'prod' || 'hml') }}
+      DEPLOY_REF: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.workflow_run.head_sha }}
+      CLUSTER_NAME: oficina-${{ github.event_name == 'workflow_dispatch' && inputs.environment || (github.event.workflow_run.head_branch == 'main' && 'prod' || 'hml') }}
+      IMAGE_TAG: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.workflow_run.head_sha }}
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5; NOSONAR - trusted push branches only
+        with:
+          ref: ${{ env.DEPLOY_REF }}
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5; NOSONAR - fixed repository and trusted environment branch
         with:
           repository: maypinheiro/oficina-k8s-infra
-          ref: ${{ inputs.environment == 'prod' && 'main' || 'homolog' }}
+          ref: ${{ env.DEPLOY_ENV == 'prod' && 'main' || 'homolog' }}
           path: cloud-infra
       - uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
         with:
@@ -90,7 +100,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ENVIRONMENT="${{ inputs.environment }}"
+          ENVIRONMENT="${{ env.DEPLOY_ENV }}"
           ADMIN_SECRET="oficina-${ENVIRONMENT}/api/admin-auth"
           PRIVATE_SECRET="oficina-${ENVIRONMENT}/auth/signing-private"
           PUBLIC_SECRET="oficina-${ENVIRONMENT}/auth/signing-public"
@@ -142,7 +152,7 @@ jobs:
       - name: Configure cluster and render manifests
         run: |
           aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$AWS_REGION"
-          sed -i "s/oficina-env/oficina-${{ inputs.environment }}/g; s/ENVIRONMENT/${{ inputs.environment }}/g; s/IMAGE_TAG/${IMAGE_TAG}/g; s|CORS_ORIGIN: \"CORS_ORIGIN\"|CORS_ORIGIN: \"${{ vars.CORS_ORIGIN }}\"|g" cloud-infra/k8s/*.yaml
+          sed -i "s/oficina-env/oficina-${{ env.DEPLOY_ENV }}/g; s/ENVIRONMENT/${{ env.DEPLOY_ENV }}/g; s/IMAGE_TAG/${IMAGE_TAG}/g; s|CORS_ORIGIN: \"CORS_ORIGIN\"|CORS_ORIGIN: \"${{ vars.CORS_ORIGIN }}\"|g" cloud-infra/k8s/*.yaml
       - name: Run controlled migration
         shell: bash
         run: |
@@ -173,38 +183,38 @@ jobs:
           kubectl apply -f cloud-infra/k8s/configmap.yaml -f cloud-infra/k8s/secret.yaml
           if ! kubectl wait --for=condition=Ready \
             externalsecret/oficina-api-secrets \
-            -n "oficina-${{ inputs.environment }}" --timeout=2m; then
+            -n "oficina-${{ env.DEPLOY_ENV }}" --timeout=2m; then
             kubectl describe clustersecretstore/aws-secrets-manager
-            kubectl describe externalsecret/oficina-api-secrets -n "oficina-${{ inputs.environment }}"
+            kubectl describe externalsecret/oficina-api-secrets -n "oficina-${{ env.DEPLOY_ENV }}"
             exit 1
           fi
-          kubectl delete job prisma-migrate -n "oficina-${{ inputs.environment }}" --ignore-not-found
+          kubectl delete job prisma-migrate -n "oficina-${{ env.DEPLOY_ENV }}" --ignore-not-found
           kubectl apply -f cloud-infra/k8s/prisma-job.yaml
           if ! kubectl wait --for=condition=complete job/prisma-migrate \
-            -n "oficina-${{ inputs.environment }}" --timeout=5m; then
-            kubectl get pods -n "oficina-${{ inputs.environment }}" -o wide
-            kubectl describe job/prisma-migrate -n "oficina-${{ inputs.environment }}"
-            kubectl logs job/prisma-migrate -n "oficina-${{ inputs.environment }}" --all-containers --tail=200 || true
+            -n "oficina-${{ env.DEPLOY_ENV }}" --timeout=5m; then
+            kubectl get pods -n "oficina-${{ env.DEPLOY_ENV }}" -o wide
+            kubectl describe job/prisma-migrate -n "oficina-${{ env.DEPLOY_ENV }}"
+            kubectl logs job/prisma-migrate -n "oficina-${{ env.DEPLOY_ENV }}" --all-containers --tail=200 || true
             exit 1
           fi
       - name: Deploy and verify rollout
         run: |
           kubectl apply -f cloud-infra/k8s/api.yaml -f cloud-infra/k8s/api-pdb.yaml -f cloud-infra/k8s/hpa.yaml
-          kubectl rollout status deployment/oficina-api -n "oficina-${{ inputs.environment }}" --timeout=5m
-          kubectl get deployment,pods,hpa -n "oficina-${{ inputs.environment }}" -o wide
+          kubectl rollout status deployment/oficina-api -n "oficina-${{ env.DEPLOY_ENV }}" --timeout=5m
+          kubectl get deployment,pods,hpa -n "oficina-${{ env.DEPLOY_ENV }}" -o wide
       - name: Seed homologation data
-        if: inputs.environment == 'hml'
-        run: kubectl exec deployment/oficina-api -n "oficina-${{ inputs.environment }}" -- npm run db:seed:ts
+        if: env.DEPLOY_ENV == 'hml'
+        run: kubectl exec deployment/oficina-api -n "oficina-${{ env.DEPLOY_ENV }}" -- npm run db:seed:ts
       - name: Smoke test through port-forward
         run: |
-          kubectl port-forward -n "oficina-${{ inputs.environment }}" service/oficina-api 8080:80 >/tmp/port-forward.log 2>&1 &
+          kubectl port-forward -n "oficina-${{ env.DEPLOY_ENV }}" service/oficina-api 8080:80 >/tmp/port-forward.log 2>&1 &
           for attempt in {1..12}; do curl --fail http://127.0.0.1:8080/health && exit 0; sleep 5; done
           cat /tmp/port-forward.log
           exit 1
       - name: Export internal load balancer outputs
         shell: bash
         run: |
-          NAMESPACE="oficina-${{ inputs.environment }}"
+          NAMESPACE="oficina-${{ env.DEPLOY_ENV }}"
           for attempt in {1..60}; do
             LB_HOSTNAME="$(kubectl get service oficina-api -n "$NAMESPACE" \
               -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
@@ -228,7 +238,7 @@ jobs:
             exit 1
           fi
 
-          DATADOG_SECRET_NAME="oficina-${{ inputs.environment }}/datadog/api-key"
+          DATADOG_SECRET_NAME="oficina-${{ env.DEPLOY_ENV }}/datadog/api-key"
           DATADOG_API_KEY="$(kubectl get secret datadog-secret -n datadog \
             -o jsonpath='{.data.api-key}' | base64 --decode)"
           if DATADOG_SECRET_ARN="$(aws secretsmanager describe-secret \
@@ -251,5 +261,5 @@ jobs:
             > deployment-outputs.json
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: api-deployment-${{ inputs.environment }}-${{ github.sha }}
+          name: api-deployment-${{ env.DEPLOY_ENV }}-${{ env.DEPLOY_REF }}
           path: deployment-outputs.json

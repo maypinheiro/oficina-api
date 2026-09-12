@@ -107,7 +107,7 @@ CI valida lint, tipos, testes, cobertura, integração, segurança, build e IaC.
 4. Acompanhe build/push no ECR, migration, rollout, seed de `hml`, smoke test e publicação dos outputs.
 5. Use o SHA imutável e o artefato da execução como evidência/rollback.
 
-O workflow de deploy está funcional, mas a [auditoria dos requisitos](docs/fase3/matriz-conformidade.md) registra que o gatilho ainda é manual. A automação após CI de `homolog`/`main` é a principal lacuna técnica remanescente.
+O CD é disparado automaticamente por `workflow_run` após o CI bem-sucedido de `homolog` ou `main`, mapeando respectivamente os GitHub Environments `hml` e `prod`. O `workflow_dispatch` permanece disponível como contingência, e produção conserva sua aprovação obrigatória. A [auditoria dos requisitos](docs/fase3/matriz-conformidade.md) registra a rastreabilidade completa.
 
 ## Ambiente validado
 
