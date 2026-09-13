@@ -13,10 +13,12 @@ Este documento indica onde uma pessoa ou avaliador automatizado encontra a prova
 | CI final da Function | Código, testes, pacote ZIP, audit e Terraform | [Run 34652432268](https://github.com/maypinheiro/oficina-auth-function/actions/runs/34652432268) |
 | CI final do EKS | Terraform fmt/init/validate e análise de segurança | [Run 34652437249](https://github.com/maypinheiro/oficina-k8s-infra/actions/runs/34652437249) |
 | CI final do banco | Terraform fmt/init/validate e análise de segurança | [Run 34652441536](https://github.com/maypinheiro/oficina-database-infra/actions/runs/34652441536) |
+| CD automático por `workflow_run` | CI verde em `homolog` iniciou o provisionamento de `hml` sem despacho manual | [Run 34776527610](https://github.com/maypinheiro/oficina-k8s-infra/actions/runs/34776527610) |
+| Correção da ingestão Datadog | DogStatsD exposto em UDP 8125 no host; dois Agents prontos e métricas da API recebidas | [PR 60](https://github.com/maypinheiro/oficina-k8s-infra/pull/60) e [PR 61](https://github.com/maypinheiro/oficina-k8s-infra/pull/61) |
 
 ## Evidências do GitHub
 
-Em 11/09/2026, a API do GitHub confirmou nos quatro repositórios:
+Em 13/09/2026, a API do GitHub confirmou nos quatro repositórios:
 
 - `main` protegida;
 - check obrigatório `validate` e branch estritamente atualizada;
@@ -57,14 +59,15 @@ Os dashboards exigem sessão na organização Datadog do grupo. As definições 
 | RDS/Secrets Manager | `oficina-database-infra/main.tf` |
 | Alarmes RDS | `oficina-database-infra/monitoring.tf` |
 
-## Evidências ainda necessárias para o vídeo
+## Validações finais de 13/09/2026
 
-1. Resposta 200 do `/health` após renovar a sessão Academy.
-2. CPF válido gerando JWT e CPF inválido/inexistente/inativo sendo negados.
-3. Rota protegida falhando sem token e respondendo com token.
-4. Ciclo da OS e histórico de status.
-5. Pipeline de CI e deploy cloud.
-6. `kubectl get hpa,pods` antes, durante e depois da carga.
-7. Dashboards populados.
-8. Log JSON localizado pelo `correlationId` e trace associado.
-9. Falha controlada em OS e monitor/alerta correspondente.
+- `/health` e `/docs/` responderam HTTP 200 pelo API Gateway.
+- Login administrativo, JWT e rota protegida `/servicos` responderam corretamente.
+- Os dashboards de API, Kubernetes e negócio foram populados.
+- O DaemonSet Datadog foi observado com `2/2` Agents prontos.
+- O status dos Agents registrou milhares de amostras DogStatsD e nenhum erro de parsing.
+- Foram publicadas métricas de volume e tempos médios de diagnóstico, execução e finalização.
+
+## Evidência audiovisual
+
+O vídeo foi gravado e validado pela equipe: [Demonstração da Fase 3](https://drive.google.com/file/d/1VsoOGimcLsAt68aPV-AQLgvy2HKe_6Qb/view?usp=sharing).

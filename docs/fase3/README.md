@@ -1,7 +1,7 @@
 # Fase 3 — Arquitetura, implementação e entrega
 
 Status: **implementada e validada em homologação**
-Última revisão: 2026-09-11
+Última revisão: 2026-09-13
 
 Este diretório consolida requisitos, decisões, arquitetura, operação e evidências
 da Fase 3. O enunciado está em `../definicoesFase3.md`, complementado por
@@ -54,8 +54,8 @@ As identidades são separadas:
 
 - cliente: autenticação por CPF conforme requisito acadêmico, com escopos
   limitados às operações do próprio cliente;
-- funcionário: Cognito User Pool, credencial individual e grupos como
-  `atendimento`, `mecanico` e `admin`;
+- funcionário: autenticação administrativa separada, com JWT HS256 e papel
+  `admin`; Cognito e credenciais individuais permanecem evolução recomendada;
 - serviço: em uma conta regular seriam usados IRSA/OIDC e roles dedicadas. No
   Learner Lab, controllers e pipelines usam `LabRole` e credenciais STS
   temporárias, nunca versionadas.
@@ -69,7 +69,7 @@ na RFC de autenticação. CPF completo e JWT nunca devem aparecer nos logs.
 - `entrega-tecnica.md`: objetivos, escopo entregue, mapa integrado e evidências;
 - `matriz-conformidade.md`: auditoria item a item contra o enunciado oficial;
 - `catalogo-evidencias.md`: runs, dashboards, proteção de branches e arquivos que comprovam a entrega;
-- `guia-demonstracao-e-aceite.md`: preparação do laboratório e roteiro verificável de demonstração;
+- `guia-demonstracao-e-aceite.md`: procedimento reproduzível de aceite técnico;
 - `rfc-001-aws.md`: escolha da nuvem e topologia dos ambientes;
 - `rfc-002-postgresql-rds.md`: banco e acesso privado;
 - `rfc-003-autenticacao.md`: CPF, JWT, Authorizer e funcionários;
@@ -83,12 +83,11 @@ na RFC de autenticação. CPF completo e JWT nunca devem aparecer nos logs.
 - `arquitetura-alvo.md`: visão de componentes e fluxos principais.
 - `modelo-dados.md`: modelo ER, índices, integridade e justificativa relacional.
 - `rfc-005-aws-academy-learner-lab.md`: limitações da conta acadêmica e contingências.
-- `roteiro-video-final.md`: roteiro cronometrado da demonstração de até 15 minutos;
 - `entrega-final.md`: índice para o PDF e submissão final.
 
 ## Evidências atuais
 
-- EKS e controllers: <https://github.com/maypinheiro/oficina-k8s-infra/actions/runs/34616729840>
+- EKS, controllers e Datadog: <https://github.com/maypinheiro/oficina-k8s-infra/actions/runs/34776527610>
 - autenticação e integração privada: <https://github.com/maypinheiro/oficina-auth-function/actions/runs/34617351925>
 - API Gateway de homologação: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com>
 - Swagger: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com/docs>
@@ -96,3 +95,6 @@ na RFC de autenticação. CPF completo e JWT nunca devem aparecer nos logs.
 Os endpoints dependem de uma sessão ativa do Learner Lab. Antes de uma nova
 demonstração, renove os secrets dos GitHub Environments e execute o
 provisionamento dos controllers para atualizar a sessão utilizada dentro do EKS.
+
+Em 13/09/2026, `/health` e `/docs/` responderam HTTP 200; os dois Agents
+Datadog estavam prontos e recebendo métricas DogStatsD da aplicação.

@@ -42,8 +42,8 @@ flowchart LR
 - [Observabilidade](docs/fase3/observabilidade.md)
 - [Runbook e rollback](docs/fase3/runbook.md)
 - [Estimativa de custos](docs/fase3/estimativa-custos.md)
-- [Roteiro do vídeo final](docs/fase3/roteiro-video-final.md)
 - [Documento-base da entrega final](docs/fase3/entrega-final.md)
+- [Vídeo validado da demonstração](https://drive.google.com/file/d/1VsoOGimcLsAt68aPV-AQLgvy2HKe_6Qb/view?usp=sharing)
 
 ### Referência da API
 
@@ -54,6 +54,12 @@ flowchart LR
 - [Linguagem ubíqua e DDD](docs/Linguagem-Ubiqua-DDD.md)
 - [CI/CD](docs/ci-cd.md)
 - [Infraestrutura](docs/infraestrutura.md)
+
+### API publicada e Swagger
+
+- Swagger/OpenAPI de homologação: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com/docs/>
+- URL base da API: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com>
+- Contratos e exemplos adicionais: [APIs e fluxos](docs/apis.md)
 
 Repositórios relacionados: [autenticação](https://github.com/maypinheiro/oficina-auth-function), [Kubernetes](https://github.com/maypinheiro/oficina-k8s-infra) e [banco](https://github.com/maypinheiro/oficina-database-infra).
 
