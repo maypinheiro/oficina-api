@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5; NOSONAR - trusted push branches only
         with:
           ref: ${{ env.DEPLOY_REF }}
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5; NOSONAR - fixed repository and trusted environment branch
         with:
           repository: maypinheiro/oficina-k8s-infra
           ref: ${{ env.DEPLOY_ENV == 'prod' && 'main' || 'homolog' }}
@@ -176,6 +176,9 @@ jobs:
             --namespace external-secrets --timeout=5m
           kubectl set env deployment/aws-load-balancer-controller \
             --namespace kube-system --from=secret/aws-academy-credentials
+          # Secret references do not change when Academy credentials rotate.
+          kubectl rollout restart deployment/aws-load-balancer-controller \
+            --namespace kube-system
           kubectl rollout status deployment/aws-load-balancer-controller \
             --namespace kube-system --timeout=5m
           kubectl apply -f cloud-infra/k8s/cluster-secret-store.yaml
