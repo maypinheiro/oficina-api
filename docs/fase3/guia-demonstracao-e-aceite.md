@@ -1,4 +1,7 @@
-# Guia de demonstração e aceite
+# Guia de aceite técnico reproduzível
+
+Este guia permite repetir a validação da solução. O vídeo final já foi gravado;
+portanto, o documento não funciona como um segundo roteiro de apresentação.
 
 ## Preparação segura
 
@@ -6,7 +9,7 @@
 2. Atualize `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` e `AWS_SESSION_TOKEN` nos environments necessários dos quatro repositórios.
 3. Nunca compartilhe a tela da página de secrets, do terminal com variáveis ou do JSON de credenciais.
 4. Execute primeiro `Provision EKS` para renovar também as credenciais dos controllers dentro do cluster.
-5. Confirme `/health`, Swagger e os três dashboards antes de iniciar a gravação.
+5. Confirme `/health`, Swagger e os três dashboards antes do aceite.
 
 ## Ordem operacional
 
@@ -18,7 +21,7 @@ flowchart LR
   DB --> API["Deploy API / hml"]
   API --> Auth["Deploy Functions and Gateway / hml"]
   Auth --> E2E["Aceite ponta a ponta"]
-  E2E --> Video["Gravar evidências"]
+  E2E --> Evidence["Registrar resultado do aceite"]
 ```
 
 ## Roteiro de aceite funcional
@@ -73,11 +76,10 @@ kubectl get hpa,pods -n oficina-hml -w
 
 Capture utilização acima do alvo, `DESIRED` maior que 2 e novos pods prontos. O HPA pode não subir se a rota for leve; nesse caso aumente concorrência e duração, sem remover os limites de segurança. Ao finalizar, interrompa a carga e mostre a estabilização.
 
-## Checklist de gravação
+## Controles de segurança e submissão
 
 - Não exibir CPF completo, JWT, chaves, AWS secrets ou Datadog API key.
 - Mostrar URL/nome do recurso e status, não valores sensíveis.
 - Usar dados sintéticos.
-- Manter o vídeo abaixo de 15 minutos.
-- Publicar no YouTube/Vimeo como público ou não listado.
-- Inserir a URL no PDF e conferir todos os links antes do Portal do Aluno.
+- Vídeo informado como validado e disponível no link da entrega final.
+- Inserir a versão atual da documentação no PDF e conferir todos os links antes do Portal do Aluno.

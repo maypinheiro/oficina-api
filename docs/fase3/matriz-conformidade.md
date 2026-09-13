@@ -1,130 +1,116 @@
-# Matriz de conformidade - requisitos oficiais da Fase 3
+# Matriz de conformidade — requisitos oficiais da Fase 3
 
-Última auditoria: **11/09/2026**.
+Última auditoria: **13/09/2026**.
 
-## Como ler esta matriz
+Fontes: [definições oficiais](../definicoesFase3.md) e [esclarecimentos do professor](../explicacaoProfessorFase3.md). A situação considera código versionado, infraestrutura implantada, pipelines executados e validações realizadas em `hml`.
 
-- **Atendido**: existe implementação versionada e evidência verificável.
-- **Parcial**: a implementação existe, mas falta automação, evidência executada ou parte do requisito.
-- **Pendente**: depende de uma ação que ainda não foi concluída.
-- **Não aplicável**: o documento oficial permite dispensa técnica, com justificativa.
+## Critérios
 
-Esta auditoria usa como fonte de verdade [`definicoesFase3.md`](../definicoesFase3.md) e [`explicacaoProfessorFase3.md`](../explicacaoProfessorFase3.md).
+- **Atendido**: implementação e evidência verificável disponíveis.
+- **Atendido com limitação acadêmica**: requisito implementado, mas disponibilidade contínua é condicionada ao AWS Academy Learner Lab.
+- **Pendente de submissão**: ação manual posterior à implementação, como regenerar o PDF final.
+- **Não aplicável**: dispensa técnica permitida pelo enunciado e justificada.
 
 ## 1. Autenticação e API Gateway
 
-| Requisito oficial | Situação | Implementação | Evidência |
-|---|---|---|---|
-| API Gateway para controle e roteamento | Atendido | HTTP API, rotas públicas, `$default` protegido e integração privada em `oficina-auth-function/infra/api-gateway.tf` | [Execução E2E](https://github.com/maypinheiro/oficina-auth-function/actions/runs/34617351925) |
-| Proteger rotas sensíveis | Atendido | Lambda Authorizer aplicado ao `$default`; matriz separa rotas públicas e privadas | [Matriz de rotas](matriz-rotas-permissoes.md) |
-| Function Serverless de autenticação | Atendido | Duas Lambdas Node.js: autenticação e autorização | [`src/handlers`](https://github.com/maypinheiro/oficina-auth-function/tree/main/src/handlers) |
-| Validar formato e dígitos do CPF | Atendido | Value Object rejeita comprimento, repetição e dígitos verificadores inválidos | [`cpf.ts`](https://github.com/maypinheiro/oficina-auth-function/blob/main/src/domain/cpf.ts) e testes |
-| Consultar existência do cliente | Atendido | Repository PostgreSQL consulta por `cpfCnpj` normalizado | [`postgres-client-repository.ts`](https://github.com/maypinheiro/oficina-auth-function/blob/main/src/infrastructure/postgres-client-repository.ts) |
-| Consultar status do cliente | Atendido | Token somente para status `ATIVO`; inexistente/inativo/bloqueado recebem resposta genérica | [RFC de autenticação](rfc-003-autenticacao.md) |
-| Gerar JWT válido | Atendido | RS256, `iss`, `aud`, `sub`, `iat`, `exp`, TTL de 15 minutos e `keyId` | [ADR-001](adrs/adr-001-jwt-rs256.md) |
-| Consumir API protegida com JWT | Atendido | Smoke E2E autentica e executa `GET /clientes` pelo Gateway/VPC Link/NLB | [Run 34617351925](https://github.com/maypinheiro/oficina-auth-function/actions/runs/34617351925) |
-
-## 2. Quatro repositórios e CI/CD
-
-| Requisito oficial | Situação | Implementação/evidência |
+| Requisito | Situação | Implementação e evidência |
 |---|---|---|
-| Function em repositório separado | Atendido | [`oficina-auth-function`](https://github.com/maypinheiro/oficina-auth-function) |
-| Infraestrutura Kubernetes/Terraform separada | Atendido | [`oficina-k8s-infra`](https://github.com/maypinheiro/oficina-k8s-infra) |
-| Infraestrutura do banco/Terraform separada | Atendido | [`oficina-database-infra`](https://github.com/maypinheiro/oficina-database-infra) |
-| Aplicação Kubernetes separada | Atendido | [`oficina-api`](https://github.com/maypinheiro/oficina-api) |
-| CI funcional nos quatro | Atendido | Lint/testes/build/audit na aplicação/Function; fmt/validate/tfsec nas infraestruturas; checks `validate` obrigatórios |
-| Main protegida e sem commit direto | Atendido | GitHub API confirmou PR obrigatório, branch atualizada, conversas resolvidas, force-push/delete bloqueados e enforcement para admins |
-| Alterações por Pull Request | Atendido | Branch protection e histórico das PRs de implementação/documentação |
-| Deploy automatizado de homologação | Atendido | `workflow_run` dispara somente após CI bem-sucedido em `homolog`, deriva `hml` e implanta exatamente o `head_sha` validado |
-| Deploy automatizado de produção | Atendido | `workflow_run` dispara após CI bem-sucedido em `main`, deriva `prod` e aguarda a aprovação obrigatória do GitHub Environment |
-| Dockerfile quando aplicável | Atendido | A API possui Dockerfile multi-stage. Function é ZIP Lambda; repositórios Terraform não precisam de imagem, conforme orientação oficial |
+| API Gateway para controle e roteamento | Atendido | Amazon API Gateway HTTP API, access logs, rotas públicas e `$default` protegido; integração privada por VPC Link e NLB. |
+| Proteger rotas sensíveis por CPF | Atendido | Cliente autentica por CPF na Lambda e recebe JWT de escopo `cliente`; Lambda Authorizer valida o token antes da API. |
+| Validar formato e dígitos do CPF | Atendido | Value Object valida tamanho, repetições e dígitos verificadores; testes automatizados no repositório da Function. |
+| Consultar existência do cliente | Atendido | Repository PostgreSQL consulta `cpfCnpj` normalizado no RDS privado. |
+| Consultar status do cliente | Atendido | Token emitido apenas para cliente `ATIVO`; inexistente, inativo e bloqueado recebem resposta genérica. |
+| Gerar JWT válido | Atendido | Cliente: RS256 com `iss`, `aud`, `sub`, `scope`, `iat` e `exp`; administração: fluxo separado compatível com JWT HS256 e papel `admin`. |
+| Consumir API protegida | Atendido | Fluxos sem token, com token cliente e com token administrativo validados pelo Gateway e Authorizer. Swagger ativo em `hml`. |
+| Function Serverless | Atendido | Lambdas Node.js independentes para autenticação e autorização, implantadas via Terraform. |
 
-### Automação CI/CD concluída
+Documentos: [RFC de autenticação](rfc-003-autenticacao.md), [ADR de JWT](adrs/adr-001-jwt-rs256.md) e [matriz de permissões](matriz-rotas-permissoes.md).
 
-Os quatro arquivos `.github/workflows/cd.yml` possuem `workflow_run` condicionado à conclusão bem-sucedida do respectivo CI. A branch `homolog` deriva o Environment `hml`; `main` deriva `prod`. O checkout utiliza o `head_sha` aprovado no CI, `workflow_dispatch` foi preservado como contingência e a aprovação do Environment de produção continua sendo aplicada antes do job.
+## 2. Repositórios, governança e CI/CD
 
-## 3. Infraestrutura cloud obrigatória
+| Requisito | Situação | Implementação e evidência |
+|---|---|---|
+| Quatro repositórios separados | Atendido | [API](https://github.com/maypinheiro/oficina-api), [Function](https://github.com/maypinheiro/oficina-auth-function), [Kubernetes](https://github.com/maypinheiro/oficina-k8s-infra) e [Banco](https://github.com/maypinheiro/oficina-database-infra). |
+| CI funcional nos quatro | Atendido | Aplicação/Function: lint, tipos, testes, build, audit e análise; infra: `fmt`, `init`, `validate`, tfsec e SonarCloud. |
+| CD para nuvem nos quatro | Atendido | Deploy/provisionamento parametrizado por ambiente, com artefatos imutáveis e smoke tests aplicáveis. |
+| Deploy automático de homologação | Atendido | CI verde em `homolog` dispara `workflow_run`, deriva `hml` e usa exatamente o SHA validado. |
+| Deploy automático de produção | Atendido | CI verde em `main` deriva `prod`; GitHub Environment mantém aprovação obrigatória. |
+| Execução manual de contingência | Atendido | `workflow_dispatch` preservado sem substituir o gatilho automático. |
+| Branch principal protegida | Atendido | PR, check `validate`, branch atualizada, conversas resolvidas, force-push/delete bloqueados e enforcement administrativo. |
+| Alterações somente por PR | Atendido | Estratégia `feature → develop → homolog → main`, comprovada pelo histórico de PRs. |
+| Dockerfile quando aplicável | Atendido | API possui Dockerfile; Lambda usa pacote ZIP; repositórios exclusivamente Terraform não criam imagens sem finalidade. |
 
-| Requisito oficial | Situação | Implementação | Evidência |
-|---|---|---|---|
-| Provedor cloud | Atendido | AWS, conta acadêmica `982623100545`, região `us-east-1` | [RFC-001](rfc-001-aws.md) |
-| Terraform | Atendido | Rede/EKS, RDS e Gateway/Lambdas mantidos em states independentes | CIs Terraform verdes |
-| Cluster Kubernetes com escalabilidade | Atendido | EKS Managed Node Group, Metrics Server, HPA 2-6 e Cluster Autoscaler | [Provisionamento EKS](https://github.com/maypinheiro/oficina-k8s-infra/actions/runs/34616729840) |
-| Banco gerenciado | Atendido | RDS PostgreSQL privado, criptografado, backups e secret | [RFC-002](rfc-002-postgresql-rds.md) |
-| Function Serverless | Atendido | AWS Lambda em sub-redes privadas | [Arquitetura auth](https://github.com/maypinheiro/oficina-auth-function/blob/main/docs/arquitetura-e-decisoes.md) |
-| API Gateway | Atendido | HTTP API com access logs, Authorizer e VPC Link | [Arquitetura integrada](entrega-tecnica.md) |
-| Alta disponibilidade da aplicação | Atendido | Duas réplicas, duas AZs, PDB, rolling update e probes | [ADR-003](adrs/adr-003-amazon-eks.md) |
-| Evidência visual da atuação do HPA | **Pendente** | HPA está implementado, mas ainda falta registrar carga e aumento real das réplicas para o vídeo | [ADR-004](adrs/adr-004-hpa.md) |
+## 3. Infraestrutura cloud
+
+| Requisito | Situação | Implementação e evidência |
+|---|---|---|
+| Provedor cloud | Atendido com limitação acadêmica | AWS, conta Learner Lab `982623100545`, região `us-east-1`; decisões e limitações nas RFCs 001 e 005. |
+| Terraform | Atendido | States remotos separados para rede/EKS, RDS e Functions/Gateway, com S3 e lock DynamoDB. |
+| Kubernetes com escalabilidade | Atendido | Amazon EKS, Managed Node Group, Metrics Server, HPA de 2 a 6 réplicas e Cluster Autoscaler. |
+| Alta disponibilidade da aplicação | Atendido | Duas réplicas em múltiplos nós/AZs, rolling update, probes e Pod Disruption Budget. |
+| Banco gerenciado | Atendido | RDS PostgreSQL privado, criptografado, com backup, secret e regras de acesso por Security Group. |
+| Function Serverless | Atendido | AWS Lambda conectada às sub-redes privadas para consultar o RDS. |
+| API Gateway | Atendido | HTTP API, Authorizer, VPC Link, NLB interno e logs de acesso. |
+| Segredos | Atendido | AWS Secrets Manager e External Secrets; nenhum segredo é versionado. |
 
 ## 4. Monitoramento e observabilidade
 
-| Requisito oficial | Situação | Implementação/evidência |
+| Requisito | Situação | Implementação e evidência |
 |---|---|---|
-| Integração Datadog | Atendido | Agent/Cluster Agent no EKS, APM Node.js, Lambda Extension e provider Terraform |
-| Latência das APIs | Atendido | Dashboard API com p95 de `trace.express.request.duration` e monitor de latência |
-| CPU e memória Kubernetes | Atendido | Dashboard Kubernetes e monitores de CPU/memória |
-| Healthchecks e uptime | Atendido | Probes `/health`, health check NLB, smoke tests e monitor de indisponibilidade |
-| Alerta para falhas em OS | Atendido | Métrica `oficina.os.operation_errors` e monitor crítico acima de zero |
-| Logs estruturados JSON | Atendido | Logger da API/Functions serializa JSON e remove campos sensíveis |
-| Correlação entre requisições | Atendido | `x-correlation-id`, `correlationId`, `traceId`, requestId do Gateway e Datadog trace |
-| Dashboard: volume diário de OS | Atendido | `oficina.os.volume_daily` no dashboard de negócio |
-| Dashboard: tempo médio por status | Atendido | Diagnóstico, execução e finalização calculados do histórico da OS |
-| Dashboard: erros/falhas de integração | Atendido | HTTP 5xx, erros de OS e `aws.lambda.errors` |
-| Dashboards provisionados | Atendido | [API](https://app.datadoghq.com/dashboard/uhc-x7j-d3i), [Kubernetes](https://app.datadoghq.com/dashboard/cfp-bd3-ayn), [Negócio](https://app.datadoghq.com/dashboard/i9b-paf-7z5) |
-| Evidência ao vivo de dashboards/logs/traces/alerta | **Pendente** | Infraestrutura está criada, mas as capturas/demonstração ao vivo precisam compor o vídeo final |
+| Integração Datadog | Atendido | Agent como DaemonSet, Cluster Agent, DogStatsD com UDP 8125 no host, APM Node.js, logs e provider Terraform. |
+| Latência das APIs | Atendido | `oficina.http.request.duration_ms`, p95 por rota e monitor acima de 2.000 ms. |
+| CPU e memória do Kubernetes | Atendido | Dashboard Kubernetes com métricas por pod e monitores de CPU/memória. |
+| Healthchecks e uptime | Atendido | `/health`, probes do Kubernetes, health check do NLB, smoke tests e monitor de réplicas. |
+| Alertas de falhas em OS | Atendido | `oficina.os.operation_errors` e monitor crítico; falhas HTTP, Lambda, RDS e restarts também monitorados. |
+| Logs estruturados JSON | Atendido | Logs com serviço, ambiente, rota, método, status, duração e filtragem de dados sensíveis. |
+| Correlação | Atendido | `x-correlation-id`, `correlationId`, `traceId` e request ID do Gateway. |
+| Volume diário de OS | Atendido | Gauge `oficina.os.volume_daily` no dashboard de negócio. |
+| Tempo médio por etapa | Atendido | Gauges de diagnóstico, execução e finalização calculados pelo histórico das ordens. |
+| Erros e integrações | Atendido | Painéis para HTTP 5xx, erros de operação de OS e erros da Lambda. |
+| Dashboards populados | Atendido | [API](https://app.datadoghq.com/dashboard/uhc-x7j-d3i), [Kubernetes](https://app.datadoghq.com/dashboard/cfp-bd3-ayn) e [Negócio](https://app.datadoghq.com/dashboard/i9b-paf-7z5). Em 13/09, Agents `2/2` e milhares de amostras DogStatsD foram verificados. |
 
-## 5. Documentação arquitetural
+## 5. Documentação arquitetural e dados
 
-| Requisito oficial | Situação | Documento |
+| Requisito | Situação | Documento/evidência |
 |---|---|---|
-| Diagrama de componentes completo | Atendido | [Arquitetura-alvo](arquitetura-alvo.md) e [entrega técnica](entrega-tecnica.md) |
-| Sequência de autenticação | Atendido | [Arquitetura-alvo](arquitetura-alvo.md) e documentação da Function |
-| Sequência de abertura da OS | Atendido | [Arquitetura-alvo](arquitetura-alvo.md) e [entrega técnica](entrega-tecnica.md) |
-| RFC da nuvem | Atendido | [RFC-001](rfc-001-aws.md) |
-| RFC do banco | Atendido | [RFC-002](rfc-002-postgresql-rds.md) |
-| RFC da autenticação | Atendido | [RFC-003](rfc-003-autenticacao.md) |
-| RFC da observabilidade | Atendido | [RFC-004](rfc-004-observabilidade-datadog.md) |
-| Limitações acadêmicas | Atendido | [RFC-005](rfc-005-aws-academy-learner-lab.md) |
-| ADRs permanentes | Atendido | Oito ADRs: JWT, defesa em profundidade, EKS, HPA, logs, tracing, migrations e secrets |
-| Justificativa formal do banco | Atendido | RFC-002 e [modelo de dados](modelo-dados.md) |
-| Diagrama ER e relacionamentos | Atendido | [Modelo de dados](modelo-dados.md) |
-| Consistência e performance | Atendido | FKs, unicidade, Decimal, status lógico e índices documentados/migrados |
+| Diagrama de componentes cloud | Atendido | [Arquitetura-alvo](arquitetura-alvo.md) e [entrega técnica](entrega-tecnica.md). |
+| Sequência de autenticação | Atendido | Diagramas na arquitetura-alvo e documentação da Function. |
+| Sequência de abertura da OS | Atendido | Diagramas na arquitetura-alvo e entrega técnica. |
+| RFCs relevantes | Atendido | AWS, PostgreSQL/RDS, autenticação, Datadog e Learner Lab. |
+| ADRs permanentes | Atendido | JWT, defesa em profundidade, EKS, HPA, logs, tracing, migrations e segredos. |
+| Justificativa do banco | Atendido | PostgreSQL/RDS justificado em [RFC-002](rfc-002-postgresql-rds.md). |
+| Modelo relacional e ER | Atendido | [Modelo de dados](modelo-dados.md), schema Prisma e migrations. |
+| Consistência e desempenho | Atendido | FKs, unicidade, tipos decimais, histórico de status e índices documentados e migrados. |
 
-## 6. READMEs e instruções
+## 6. Conteúdo obrigatório dos READMEs
 
-| Requisito oficial | Situação | Observação |
+| Requisito | Situação | Evidência |
 |---|---|---|
-| Propósito em cada README | Atendido | Os quatro descrevem responsabilidade e limites |
-| Tecnologias | Atendido | Seção própria nos quatro |
-| Pré-requisitos | Atendido | Dependências locais/cloud e Learner Lab |
-| Execução | Atendido | Aplicação/Function possuem comandos; infraestruturas documentam validação Terraform |
-| Passos de deploy | Atendido | READMEs apontam para workflows/environments e guias específicos |
-| Explicação da pipeline | Atendido | CI, CD, ordem, smoke tests e rollback |
-| Diagrama específico | Atendido | Mermaid em cada README e documento detalhado |
-| Swagger/Postman | Atendido | Swagger `hml` referenciado; infraestruturas marcam como link compartilhado/não aplicável a API própria |
-| Links para deploy ativo | **Parcial** | URL está documentada, mas em 11/09/2026 retornou 503 após expiração/rotação da sessão Academy; precisa renovar controllers e revalidar antes da entrega |
+| Propósito e limites | Atendido | Seção “O que este repositório entrega” nos quatro READMEs. |
+| Tecnologias e pré-requisitos | Atendido | Seções específicas nos quatro repositórios. |
+| Execução e deploy | Atendido | Comandos locais, workflows, environments e ordem operacional documentados. |
+| Explicação da pipeline | Atendido | CI, CD, promoções, smoke tests e rollback descritos. |
+| Diagrama específico | Atendido | Mermaid em cada README e documentos detalhados. |
+| Swagger/Postman | Atendido | Swagger compartilhado referenciado; marcado como não aplicável onde não existe API HTTP própria. |
+| Links de deploy | Atendido com limitação acadêmica | `/health` e `/docs/` responderam 200 em 13/09/2026; disponibilidade depende da sessão temporária Academy. |
 
-## 7. Entrega final
+## 7. Vídeo e submissão
 
-| Requisito oficial | Situação | Evidência/ação |
+| Requisito | Situação | Evidência/ação |
 |---|---|---|
-| Vídeo YouTube/Vimeo até 15 minutos | **Pendente** | Gravar, publicar e informar URL |
-| Demonstrar CPF, JWT e API protegida | Pronto para gravação | Fluxo E2E já validado; repetir visualmente |
-| Demonstrar CI/CD e deploy | Pronto para gravação | Runs existentes; lacuna de gatilho automático deve ser corrigida |
-| Demonstrar dashboards, logs, correlação e traces | Pronto para gravação | Dashboards provisionados; gerar tráfego antes da captura |
-| PDF único com quatro repositórios | Atendido | PDF versionado no repositório da API |
-| PDF com links das documentações | Atendido | Índice incluído, sujeito à atualização final |
-| PDF com link do vídeo | **Pendente** | Atualizar depois da publicação |
-| `soat-architecture` nos quatro repositórios | Atendido | GitHub API confirmou permissão `read` nos quatro em 11/09/2026 |
-| Confirmação no PDF | **Pendente de atualização documental** | O PDF atual ainda trata a confirmação como pendência; regenerar com a evidência correta |
+| Vídeo de até 15 minutos | Atendido | [Vídeo da demonstração](https://drive.google.com/file/d/1VsoOGimcLsAt68aPV-AQLgvy2HKe_6Qb/view?usp=sharing), informado como validado pela equipe. |
+| Demonstrar CPF, JWT e API protegida | Atendido | Fluxo técnico validado e demonstração registrada no vídeo. |
+| Demonstrar CI/CD e deploy | Atendido | Pipelines executados e demonstração registrada no vídeo. |
+| Demonstrar dashboards ao vivo | Atendido | Dashboards populados e demonstração registrada no vídeo. |
+| Demonstrar logs, correlação e traces | Atendido | Instrumentação validada e demonstração registrada no vídeo. |
+| PDF único com links | Pendente de submissão | PDF existe, mas precisa receber a URL do vídeo e ser regenerado. |
+| `soat-architecture` nos quatro repositórios | Atendido | Permissão `read` confirmada pela API do GitHub em 13/09/2026. |
 
-## Resumo executivo das lacunas
+## Conclusão da auditoria
 
-| Prioridade | Lacuna | Ação necessária |
-|---|---|---|
-| Crítica | Vídeo e URL | Gravar até 15 minutos, publicar e inserir URL no PDF |
-| Alta | Evidência ao vivo | Registrar HPA, dashboards, logs correlacionados, trace e alerta durante o vídeo |
-| Alta | Ambiente `hml` atualmente 503 | Renovar credenciais Academy dentro dos controllers e repetir E2E |
-| Média | PDF desatualizado sobre colaborador | Regenerar informando que `soat-architecture` possui leitura nos quatro repos |
+Não foi identificada lacuna técnica obrigatória. Permanecem estas ações de submissão:
 
-Não foi identificado requisito obrigatório para uma segunda Function de notificações. O texto inicial cita serverless para autenticação e notificações como objetivo do negócio, mas a lista obrigatória detalha somente a Function de autenticação. Notificações permanecem evolução possível e não devem ser apresentadas como implementadas.
+1. regenerar o PDF único com a documentação e o link do vídeo atualizados;
+2. conferir todos os links do PDF antes da submissão.
+
+Notificações serverless aparecem como objetivo geral, mas a lista obrigatória detalha apenas a Function de autenticação. Uma Function de notificações é evolução possível e não é apresentada como implementada.

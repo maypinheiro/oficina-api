@@ -115,7 +115,7 @@ CI valida lint, tipos, testes, cobertura, integração, segurança, build e IaC.
 - RFCs, ADRs, arquitetura de componentes e sequências.
 - Quatro repositórios públicos com responsabilidades separadas.
 
-Para evitar que esta visão executiva esconda lacunas, consulte a [matriz de conformidade](matriz-conformidade.md). Ela diferencia requisito implementado, evidência executada e ação ainda pendente. A lacuna de CD foi encerrada com `workflow_run` após CI verde em `homolog`/`main`, mapeamento para `hml`/`prod`, checkout do SHA validado e aprovação de produção. Vídeo, evidência visual de HPA/Datadog e URL no PDF ainda dependem de conclusão.
+Para a auditoria item a item, consulte a [matriz de conformidade](matriz-conformidade.md). O CD usa `workflow_run` após CI verde em `homolog`/`main`, deriva `hml`/`prod`, implanta o SHA validado e preserva a aprovação de produção. O vídeo foi gravado, disponibilizado e validado; resta regenerar o PDF final com a documentação atualizada.
 
 ## Limitações e transparência acadêmica
 
@@ -129,16 +129,20 @@ A conta `982623100545` é um AWS Academy Learner Lab. Credenciais STS expiram, `
 
 ## Evidências atuais
 
-- EKS e controllers: <https://github.com/maypinheiro/oficina-k8s-infra/actions/runs/34616729840>
+- EKS, controllers e Datadog: <https://github.com/maypinheiro/oficina-k8s-infra/actions/runs/34776527610>
 - JWT, Authorizer, Gateway, VPC Link, NLB e rota protegida: <https://github.com/maypinheiro/oficina-auth-function/actions/runs/34617351925>
 - Endpoint de homologação: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com>
 - Swagger de homologação: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com/docs>
 - Dashboard da API: <https://app.datadoghq.com/dashboard/uhc-x7j-d3i>
 - Dashboard Kubernetes: <https://app.datadoghq.com/dashboard/cfp-bd3-ayn>
 - Dashboard de negócio: <https://app.datadoghq.com/dashboard/i9b-paf-7z5>
-- Proteção de `main` e `soat-architecture`: confirmados nos quatro repositórios pela API do GitHub em 11/09/2026.
+- Proteção de `main` e `soat-architecture`: confirmados nos quatro repositórios pela API do GitHub em 13/09/2026.
 
 O endpoint depende de uma sessão ativa do Learner Lab e pode não responder fora da janela acadêmica.
+
+Na validação de 13/09/2026, `/health` e `/docs/` responderam 200. O DaemonSet
+Datadog ficou com dois Agents prontos e o DogStatsD confirmou o recebimento de
+milhares de amostras, incluindo as métricas `oficina.http.*` e `oficina.os.*`.
 
 ## Índice de decisões e operação
 
@@ -150,7 +154,6 @@ O endpoint depende de uma sessão ativa do Learner Lab e pode não responder for
 - [Segurança](seguranca.md)
 - [Runbook](runbook.md)
 - [Estimativa de custos](estimativa-custos.md)
-- [Roteiro do vídeo](roteiro-video-final.md)
 - [Entrega final](entrega-final.md)
 - [Matriz de conformidade](matriz-conformidade.md)
 - [Catálogo de evidências](catalogo-evidencias.md)

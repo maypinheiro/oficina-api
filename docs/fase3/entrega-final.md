@@ -1,68 +1,69 @@
-# Entrega final - Tech Challenge Fase 3
+# Entrega final — Tech Challenge Fase 3
 
-## Repositórios
+Este documento é o ponto de entrada da submissão. Ele reúne os links dos quatro repositórios, do ambiente demonstrável, da documentação arquitetural, das evidências e do vídeo.
 
-- API: https://github.com/maypinheiro/oficina-api
-- Autenticação: https://github.com/maypinheiro/oficina-auth-function
-- Kubernetes e observabilidade: https://github.com/maypinheiro/oficina-k8s-infra
-- Banco gerenciado: https://github.com/maypinheiro/oficina-database-infra
+## Resultado executivo
 
-## Ambiente validado
+A solução foi implantada e validada em homologação na AWS. Os requisitos técnicos obrigatórios da Fase 3 estão atendidos: API Gateway, autenticação serverless por CPF, JWT, rotas protegidas, aplicação no EKS com escalabilidade, PostgreSQL gerenciado, Terraform, quatro repositórios com CI/CD, observabilidade Datadog e documentação arquitetural.
 
-- Ambiente: homologação (`hml`)
-- Região: `us-east-1`
-- Conta acadêmica AWS: `982623100545`
-- API Gateway: https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com
-- Swagger: https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com/docs
-- Provisionamento EKS validado: https://github.com/maypinheiro/oficina-k8s-infra/actions/runs/34616729840
-- Autenticação e integração privada validadas: https://github.com/maypinheiro/oficina-auth-function/actions/runs/34617351925
+O vídeo foi gravado, disponibilizado e validado. Resta somente regenerar o PDF para incorporar a versão atual desta documentação.
 
-O ambiente usa AWS Academy Learner Lab. As credenciais expiram ao fim da sessão; por isso, os GitHub Environments e os controllers que acessam AWS devem ser atualizados antes da demonstração. O ambiente pode deixar de responder quando a sessão ou os recursos do laboratório forem encerrados.
+## Repositórios da entrega
 
-## Arquitetura entregue
+| Componente | Repositório | Responsabilidade |
+|---|---|---|
+| Aplicação | [oficina-api](https://github.com/maypinheiro/oficina-api) | API Express, domínio, Prisma, Swagger, métricas e imagem Docker |
+| Autenticação | [oficina-auth-function](https://github.com/maypinheiro/oficina-auth-function) | Lambda de autenticação, Lambda Authorizer, JWT e API Gateway |
+| Kubernetes | [oficina-k8s-infra](https://github.com/maypinheiro/oficina-k8s-infra) | VPC, EKS, ECR, HPA, manifests, Datadog e dashboards |
+| Banco | [oficina-database-infra](https://github.com/maypinheiro/oficina-database-infra) | RDS PostgreSQL, rede privada, segredos, backups e alarmes |
 
-API Gateway HTTP API recebe as requisições públicas. A autenticação por CPF é executada por Lambda e gera JWT RS256. Um Lambda Authorizer protege as rotas privadas. O Gateway alcança a API no EKS por VPC Link e NLB interno. A API usa PostgreSQL no RDS privado, com segredos no Secrets Manager. Datadog recebe métricas, logs e traces da API, Kubernetes e Functions.
+O usuário `soat-architecture` possui permissão `read` nos quatro repositórios, verificada pela API do GitHub em 13/09/2026.
 
-## Evidência de aceite técnico
+## Vídeo de demonstração
 
-- Emissão de JWT para cliente ativo: validada.
-- Lambda Authorizer e rota protegida `/clientes`: validados.
-- API Gateway, VPC Link, NLB privado e API no EKS: validados.
-- Health check `/health`: validado.
-- Terraform, testes, build e deploy automatizado: validados.
-- RDS privado, migration e seed de homologação: validados.
-- Logs JSON, correlação, APM, dashboards e monitores: implementados.
-- HPA de 2 a 6 réplicas e PDB: implementados.
-- RFCs, ADRs, diagramas, matriz de permissões e runbook: versionados.
-- Branch `main` protegida e `soat-architecture` com leitura: confirmados nos quatro repositórios pela API do GitHub em 11/09/2026.
-- Dashboards Datadog: [API](https://app.datadoghq.com/dashboard/uhc-x7j-d3i), [Kubernetes](https://app.datadoghq.com/dashboard/cfp-bd3-ayn) e [Negócio](https://app.datadoghq.com/dashboard/i9b-paf-7z5).
+- Situação: **gravado, disponibilizado e validado**.
+- Vídeo: [Demonstração da Fase 3](https://drive.google.com/file/d/1VsoOGimcLsAt68aPV-AQLgvy2HKe_6Qb/view?usp=sharing).
+- Duração: validada pela equipe dentro do limite da entrega.
 
-## Resultado da auditoria dos requisitos
+## Ambiente de homologação
 
-- Atendidos: arquitetura cloud, quatro repositórios, proteção de branches, autenticação CPF/JWT, API Gateway, EKS/HPA, RDS, Terraform, CI, observabilidade, diagramas, RFCs, ADRs, modelo ER e colaborador da banca.
-- Atendido: os quatro workflows usam `workflow_run` após CI verde em `homolog`/`main`, derivam `hml`/`prod`, implantam o SHA validado e preservam `workflow_dispatch` como contingência.
-- Pendentes: vídeo, URL do vídeo neste PDF e evidência visual ao vivo de HPA, dashboards, logs, trace e alerta.
-- Estado atual do ambiente: em 11/09/2026, `/health` e `/docs` retornaram 503 após expiração/rotação da sessão Academy; renovar controllers e repetir o E2E antes de gravar.
+| Item | Valor |
+|---|---|
+| Ambiente | `hml` |
+| Provedor/região | AWS / `us-east-1` |
+| Conta acadêmica | AWS Academy Learner Lab `982623100545` |
+| API Gateway | <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com> |
+| Swagger | <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com/docs/> |
+| Dashboard da API | <https://app.datadoghq.com/dashboard/uhc-x7j-d3i> |
+| Dashboard Kubernetes | <https://app.datadoghq.com/dashboard/cfp-bd3-ayn> |
+| Dashboard de negócio | <https://app.datadoghq.com/dashboard/i9b-paf-7z5> |
 
-Matriz completa: https://github.com/maypinheiro/oficina-api/blob/main/docs/fase3/matriz-conformidade.md
+Em 13/09/2026, `/health` e `/docs/` responderam HTTP 200. O Datadog Agent foi validado com dois Agents prontos e recebimento de métricas DogStatsD. Por ser um Learner Lab, o endpoint pode ficar indisponível quando a sessão acadêmica expira; isso é uma limitação do ambiente, não do desenho de produção.
 
-## Pendências humanas para submissão
+## Arquitetura e decisões
 
-- Gravar o vídeo com até 15 minutos.
-- Publicar no YouTube ou Vimeo, público ou não listado.
-- Inserir a URL do vídeo neste documento e regenerar o PDF.
-- Durante a gravação, capturar visualmente os cenários negativos, ciclo completo da OS, correlação no Datadog, alerta e reação do HPA.
+- [Entrega técnica e arquitetura integrada](entrega-tecnica.md)
+- [Arquitetura-alvo e diagramas de sequência](arquitetura-alvo.md)
+- [Matriz de conformidade oficial](matriz-conformidade.md)
+- [Catálogo de evidências](catalogo-evidencias.md)
+- [Modelo relacional e diagrama ER](modelo-dados.md)
+- [Matriz de rotas e permissões](matriz-rotas-permissoes.md)
+- [RFCs e ADRs](README.md)
+- [Segurança](seguranca.md)
+- [Observabilidade](observabilidade.md)
+- [Runbook operacional](runbook.md)
+- [Estimativa de custos](estimativa-custos.md)
 
-## Documentação principal
+## Evidências principais
 
-- `docs/fase3/arquitetura-alvo.md`
-- `docs/fase3/matriz-rotas-permissoes.md`
-- `docs/fase3/observabilidade.md`
-- `docs/fase3/runbook.md`
-- `docs/fase3/seguranca.md`
-- `docs/fase3/adrs/README.md`
-- `docs/fase3/rfc-001-cloud-aws.md`
-- `docs/fase3/rfc-002-banco-rds-postgresql.md`
-- `docs/fase3/rfc-003-autenticacao.md`
-- `docs/fase3/rfc-004-observabilidade-datadog.md`
-- `docs/fase3/rfc-005-aws-academy-learner-lab.md`
+- EKS, controllers e Datadog: [run 34776527610](https://github.com/maypinheiro/oficina-k8s-infra/actions/runs/34776527610).
+- JWT, Authorizer, Gateway, VPC Link e rota protegida: [run 34617351925](https://github.com/maypinheiro/oficina-auth-function/actions/runs/34617351925).
+- CI/CD automático: workflows acionados por `workflow_run` após CI verde em `homolog` e `main`, com `workflow_dispatch` preservado como contingência.
+- Observabilidade: dashboards provisionados por Terraform, logs JSON correlacionados, métricas técnicas e de negócio e monitores versionados.
+
+## Pendências para envio ao Portal do Aluno
+
+1. Regenerar e revisar o PDF único com o link do vídeo.
+2. Abrir todos os links do PDF em janela anônima antes da submissão.
+
+Não há lacuna técnica obrigatória identificada na auditoria de 13/09/2026.

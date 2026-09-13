@@ -45,18 +45,19 @@ cliente autenticado.
 
 ### Funcionários
 
-Funcionários continuarão com autenticação separada, mas o usuário/senha global
-do código atual será substituído por Amazon Cognito User Pool. Cada funcionário
-terá credencial individual e grupo/papel. O login administrativo legado deverá
-ser removido após a migração.
+Funcionários permanecem em um fluxo separado do cliente. Na entrega acadêmica,
+o login administrativo emite JWT HS256 com papel `admin`, validado pelo mesmo
+Lambda Authorizer segundo regras próprias. A migração para Amazon Cognito User
+Pool, credenciais individuais e grupos por função é uma evolução recomendada,
+mas não é apresentada como componente implantado nesta fase.
 
 ### Validação no Gateway
 
 O API Gateway HTTP API usará um Lambda Authorizer do tipo request:
 
 - valida assinatura, `iss`, `aud`, expiração e escopo;
-- aceita o token de cliente emitido pela Lambda e tokens de funcionário do
-  Cognito segundo regras explícitas;
+- aceita o token RS256 de cliente e o token administrativo HS256 segundo regras
+  explícitas de algoritmo, assinatura, claims e papel;
 - retorna contexto mínimo para a API;
 - usa cache curto, inicialmente 60 segundos;
 - nega por padrão.
@@ -104,4 +105,3 @@ desafio de posse, como OTP enviado a contato previamente cadastrado.
 
 - https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-lambda-authorizer.html
 - https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html
-
