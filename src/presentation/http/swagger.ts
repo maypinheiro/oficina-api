@@ -17,7 +17,9 @@ export const openApiDocument = {
     version: "0.1.0",
     description: "API REST para oficina mecanica conforme SSD do Tech Challenge."
   },
-  servers: [{ url: "http://localhost:3000" }],
+  // Relative URL keeps Swagger requests on the same origin in local execution
+  // and behind the API Gateway, avoiding a hard-coded localhost target.
+  servers: [{ url: "/" }],
   tags: [
     { name: "Saude", description: "Disponibilidade da API" },
     { name: "Autenticacao", description: "JWT administrativo" },
