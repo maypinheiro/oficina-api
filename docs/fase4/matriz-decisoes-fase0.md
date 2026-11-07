@@ -41,7 +41,7 @@ Podem ser refinadas na fase de construção:
 - [x] retry, idempotência, DLQ e replay definidos;
 - [x] RFCs e ADRs aceitos;
 - [x] limitações do AWS Academy consideradas;
-- [ ] revisão/aprovação formal do grupo;
+- [x] revisão/aprovação formal do grupo em 2026-11-07;
 
 ## Gate para iniciar a Fase 1
 
