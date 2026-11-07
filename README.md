@@ -1,6 +1,6 @@
-# Oficina API
+# Oficina OS Service
 
-API principal do sistema de oficina mecânica. Gerencia clientes, veículos, catálogo, estoque, ordens de serviço, orçamentos e métricas, com regras de negócio separadas da infraestrutura HTTP e da persistência.
+Serviço responsável pelo ciclo global da ordem de serviço e pela orquestração da Saga na Fase 4. Durante a migração incremental, o repositório ainda contém módulos legados de cadastro, catálogo, estoque e orçamento da Fase 3; esses módulos serão extraídos sem interromper a API existente.
 
 ## O que este repositório entrega
 
