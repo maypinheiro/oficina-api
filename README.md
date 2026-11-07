@@ -35,6 +35,7 @@ flowchart LR
 - [Catálogo de evidências executadas e rastreabilidade no código](docs/fase3/catalogo-evidencias.md)
 - [Guia de demonstração e aceite](docs/fase3/guia-demonstracao-e-aceite.md)
 - [Índice de RFCs, ADRs e documentação](docs/fase3/README.md)
+- [Fase 4 — arquitetura de microsserviços e Saga](docs/fase4/README.md)
 - [Arquitetura-alvo e diagramas de sequência](docs/fase3/arquitetura-alvo.md)
 - [Matriz de rotas e permissões](docs/fase3/matriz-rotas-permissoes.md)
 - [Modelo de dados](docs/fase3/modelo-dados.md)
