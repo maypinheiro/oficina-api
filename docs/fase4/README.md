@@ -32,6 +32,7 @@ arquitetura e o fluxo transacional antes da extração de código do monólito.
 ## Evolução da implementação
 
 - [Fase 1 — preparação dos repositórios](fase1-preparacao-repositorios.md)
+- [Fase 2 — separação dos dados](fase2-separacao-dados.md)
 
 ## Estado da Fase 0
 
