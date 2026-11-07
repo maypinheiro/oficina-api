@@ -22,9 +22,9 @@ Temporariamente, o repositório ainda contém clientes, veículos, catálogo, es
 
 | Repositório | Responsabilidade | Banco planejado |
 |---|---|---|
-| `oficina-api` (OS Service) | OS, histórico e orquestração da Saga | PostgreSQL |
-| `oficina-billing-service` | orçamento, aprovação e pagamento | PostgreSQL |
-| `oficina-execution-service` | fila, diagnóstico e execução | DynamoDB |
+| [`oficina-api`](https://github.com/maypinheiro/oficina-api) (OS Service) | OS, histórico e orquestração da Saga | PostgreSQL |
+| [`oficina-billing-service`](https://github.com/maypinheiro/oficina-billing-service) | orçamento, aprovação e pagamento | PostgreSQL |
+| [`oficina-execution-service`](https://github.com/maypinheiro/oficina-execution-service) | fila, diagnóstico e execução | DynamoDB |
 
 Cada serviço terá build, testes, imagem, manifestos Kubernetes, infraestrutura, documentação e pipeline próprios. Nenhum serviço poderá acessar o banco de outro.
 
@@ -35,7 +35,16 @@ Cada serviço terá build, testes, imagem, manifestos Kubernetes, infraestrutura
 - [x] health check e teste automatizado nos novos serviços;
 - [x] Dockerfile, manifestos Kubernetes e diretório Terraform por serviço;
 - [x] CI independente com cobertura mínima de 80%;
-- [ ] repositórios públicos publicados no GitHub;
-- [ ] proteção da `main` com pull request e verificações obrigatórias.
+- [x] repositórios públicos publicados no GitHub;
+- [x] proteção da `main` com pull request e verificação `quality` obrigatória.
 
-Os dois últimos itens dependem de uma sessão autenticada do GitHub CLI e serão marcados após a publicação. Extração de domínio, mensageria, Saga e bancos são fases posteriores e não são declarados como concluídos aqui.
+## Evidências da execução
+
+- [PR do OS Service](https://github.com/maypinheiro/oficina-api/pull/72), aprovado por `validate` e SonarCloud;
+- [PR do Billing Service](https://github.com/maypinheiro/oficina-billing-service/pull/1), aprovado pelo CI independente;
+- [PR do Execution Service](https://github.com/maypinheiro/oficina-execution-service/pull/1), aprovado pelo CI independente;
+- branches `main`, `develop` e `homolog` publicadas nos novos serviços;
+- proteção da `main` com histórico linear, bloqueio de force push e exclusão, resolução de conversas e PR obrigatório;
+- testes locais dos novos serviços com 100% de linhas, 100% de funções e 81,25% de branches.
+
+Extração de domínio, mensageria, Saga e bancos são fases posteriores e não são declarados como concluídos aqui.
