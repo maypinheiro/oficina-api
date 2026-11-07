@@ -29,6 +29,10 @@ arquitetura e o fluxo transacional antes da extração de código do monólito.
 - [RFC-007 — Saga orquestrada](rfc-007-saga-orquestrada.md)
 - [ADRs da Fase 4](adrs/README.md)
 
+## Evolução da implementação
+
+- [Fase 1 — preparação dos repositórios](fase1-preparacao-repositorios.md)
+
 ## Estado da Fase 0
 
 As decisões arquiteturais e o fluxo da Saga estão fechados. Nenhum código de
