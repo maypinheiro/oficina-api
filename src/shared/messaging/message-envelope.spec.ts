@@ -39,7 +39,8 @@ describe("contrato de mensageria", () => {
     expect(() => assertMessageEnvelope({ ...message(), messageKind: "unknown" })).toThrow();
     expect(() => assertMessageEnvelope({ ...message(), version: 0 })).toThrow();
     expect(() => assertMessageEnvelope({ ...message(), occurredAt: "invalid" })).toThrow();
-    const { payload: _, ...withoutPayload } = message();
+    const withoutPayload: Record<string, unknown> = { ...message() };
+    delete withoutPayload.payload;
     expect(() => assertMessageEnvelope(withoutPayload)).toThrow();
   });
 });
