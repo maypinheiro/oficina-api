@@ -31,7 +31,7 @@ O usuário `soat-architecture` possui permissão `read` nos quatro repositórios
 |---|---|
 | Ambiente | `hml` |
 | Provedor/região | AWS / `us-east-1` |
-| Conta acadêmica | AWS Academy Learner Lab `982623100545` |
+| Conta acadêmica | AWS Academy Learner Lab atual `508274625814`; conta anterior `982623100545` encerrada |
 | API Gateway | <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com> |
 | Swagger | <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com/docs/> |
 | Dashboard da API | <https://app.datadoghq.com/dashboard/uhc-x7j-d3i> |
