@@ -2,8 +2,9 @@ locals {
   tags = { Project = "oficina-os", Environment = var.environment, ManagedBy = "terraform", Phase = "4" }
 }
 resource "aws_sns_topic" "domain_events" {
-  name = "oficina-domain-events-${var.environment}"
-  tags = local.tags
+  name              = "oficina-domain-events-${var.environment}"
+  kms_master_key_id = "alias/aws/sns"
+  tags              = local.tags
 }
 resource "aws_sqs_queue" "messages_dlq" {
   name                      = "os-service-${var.environment}-dlq"
