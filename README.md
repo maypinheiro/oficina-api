@@ -123,7 +123,7 @@ O CD é disparado automaticamente por `workflow_run` após o CI bem-sucedido de 
 
 ## Ambiente validado
 
-- Conta acadêmica: `982623100545`;
+- Conta acadêmica atual: `508274625814`; a conta anterior `982623100545` foi substituída pelo AWS Academy Learner Lab;
 - região: `us-east-1`;
 - API Gateway `hml`: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com>;
 - Swagger `hml`: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com/docs>;

@@ -2,7 +2,7 @@
 
 ## Pré-requisitos
 
-- sessão AWS Academy ativa na conta `982623100545`, região `us-east-1`;
+- sessão AWS Academy ativa na conta atual `508274625814`, região `us-east-1`;
 - renovar `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` e `AWS_SESSION_TOKEN` no environment;
 - outputs de rede, chaves Datadog e acesso ao cluster disponíveis.
 

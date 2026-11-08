@@ -2,7 +2,7 @@
 
 - Status: aceita
 - Data: 2026-09-08
-- Conta: `982623100545`
+- Conta atual: `508274625814` (a conta anterior `982623100545` foi encerrada pelo Learner Lab)
 
 ## Contexto
 

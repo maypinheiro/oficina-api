@@ -22,7 +22,7 @@ Usar AWS na região `us-east-1`, com os seguintes serviços:
 - CloudWatch como fonte nativa, encaminhando telemetria ao Datadog;
 - S3 para estado Terraform e locking nativo do backend S3.
 
-O projeto usará a conta única AWS Academy Learner Lab `982623100545`, fornecida
+O projeto usa a conta atual AWS Academy Learner Lab `508274625814`, fornecida
 pela pós-graduação. Homologação e produção serão isoladas logicamente por
 prefixos, tags, estados Terraform, secrets, bancos e recursos distintos. A
 impossibilidade de isolamento por conta é aceita e detalhada na RFC-005.
