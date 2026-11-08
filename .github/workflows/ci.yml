@@ -47,6 +47,7 @@ jobs:
       - run: npm run test:integration
         env:
           RUN_INTEGRATION_TESTS: true
+      - run: npm run test:bdd
       - run: npm run build
       - run: npm audit --omit=dev --audit-level=critical
       - run: docker build --tag oficina-api:${{ github.sha }} .

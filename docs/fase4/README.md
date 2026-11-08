@@ -8,6 +8,7 @@ arquitetura e o fluxo transacional antes da extração de código do monólito.
 - [Fase 3 — mensageria básica e contratos](fase3-mensageria-basica.md)
 - [Fase 4 — Saga orquestrada implementada](fase4-saga-implementada.md)
 - [Fase 5 — integração Mercado Pago](fase5-mercado-pago.md)
+- [Fase 6 — BDD ponta a ponta da Saga](fase6-bdd-saga.md)
 
 | Tema | Decisão |
 |---|---|
