@@ -13,7 +13,7 @@ em [entrega-tecnica.md](entrega-tecnica.md).
 | Tema | Decisão |
 |---|---|
 | Nuvem | AWS |
-| Conta | AWS Academy Learner Lab (`982623100545`), conta única e temporária |
+| Conta | AWS Academy Learner Lab atual (`508274625814`), conta única e temporária; a conta anterior foi substituída pelo laboratório |
 | Região primária | `us-east-1` (N. Virginia), por custo e disponibilidade de serviços |
 | Observabilidade | Datadog, integrado a EKS, Lambda, API Gateway e PostgreSQL/RDS |
 | Homologação | Recursos `hml`, preferencialmente temporários, com deploy da branch `homolog` |
