@@ -28,6 +28,8 @@ flowchart LR
 
 ## Documentação
 
+- [Fase 4 — mensageria básica, contratos, idempotência e DLQ](docs/fase4/fase3-mensageria-basica.md)
+
 ### Entrega da Fase 3
 
 - [Visão completa da entrega, objetivos e arquitetura integrada](docs/fase3/entrega-tecnica.md)

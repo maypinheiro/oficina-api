@@ -5,6 +5,8 @@ arquitetura e o fluxo transacional antes da extração de código do monólito.
 
 ## Decisões fechadas
 
+- [Fase 3 — mensageria básica e contratos](fase3-mensageria-basica.md)
+
 | Tema | Decisão |
 |---|---|
 | Serviços de negócio | OS Service, Billing Service e Execution Service |
