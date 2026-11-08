@@ -30,6 +30,7 @@ flowchart LR
 
 - [Fase 4 — mensageria básica, contratos, idempotência e DLQ](docs/fase4/fase3-mensageria-basica.md)
 - [Fase 4 — Saga orquestrada e compensações](docs/fase4/fase4-saga-implementada.md)
+- [Fase 4 — integração Mercado Pago e webhook seguro](docs/fase4/fase5-mercado-pago.md)
 
 ### Entrega da Fase 3
 
