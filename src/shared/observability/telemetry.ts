@@ -27,3 +27,7 @@ export const metrics = new StatsD({
 export function activeTraceId(): string | undefined {
   return tracer.scope().active()?.context().toTraceId();
 }
+
+export function trace<T>(name: string, tags: Record<string, string | undefined>, operation: () => Promise<T>): Promise<T> {
+  return tracer.trace(name, { tags }, operation);
+}

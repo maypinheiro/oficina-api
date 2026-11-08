@@ -30,6 +30,22 @@ enum StatusCliente {
   BLOQUEADO
 }
 
+enum StatusSaga {
+  INICIADA
+  EM_ANDAMENTO
+  AGUARDANDO_EVENTO
+  COMPENSANDO
+  COMPENSADA
+  CONCLUIDA
+  FALHOU
+}
+
+enum StatusOutbox {
+  PENDENTE
+  PUBLICADA
+  FALHOU
+}
+
 model Cliente {
   id           String           @id @default(uuid())
   nome         String
@@ -86,9 +102,59 @@ model OrdemDeServico {
   orcamento                Orcamento?
   criadoEm                 DateTime            @default(now())
   atualizadoEm             DateTime            @updatedAt
+  billingQuoteId           String?
+  executionId              String?
+  paymentId                String?
+  saga                     SagaInstancia?
 
   @@index([status, dataCriacao])
   @@index([clienteId, dataCriacao])
+}
+
+model SagaInstancia {
+  id               String         @id @default(uuid())
+  ordemServicoId   String         @unique
+  status           StatusSaga     @default(INICIADA)
+  etapaAtual       String
+  versao           Int            @default(0)
+  correlationId    String         @unique
+  deadline         DateTime?
+  ultimoErro       String?
+  iniciadoEm       DateTime       @default(now())
+  atualizadoEm     DateTime       @updatedAt
+  finalizadoEm     DateTime?
+  ordemServico     OrdemDeServico @relation(fields: [ordemServicoId], references: [id])
+
+  @@index([status, atualizadoEm])
+}
+
+model OutboxMensagem {
+  id            String       @id @default(uuid())
+  aggregateId   String
+  tipo          String
+  versao        Int          @default(1)
+  payload       Json
+  correlationId String
+  sagaId        String?
+  status        StatusOutbox @default(PENDENTE)
+  tentativas    Int          @default(0)
+  proximaTentativaEm DateTime?
+  criadoEm      DateTime     @default(now())
+  publicadoEm   DateTime?
+
+  @@index([status, proximaTentativaEm, criadoEm])
+  @@index([aggregateId, criadoEm])
+}
+
+model InboxMensagem {
+  messageId     String   @id
+  tipo          String
+  correlationId String
+  sagaId        String?
+  payloadHash   String
+  processadoEm  DateTime @default(now())
+
+  @@index([correlationId, processadoEm])
 }
 
 model HistoricoStatusOS {

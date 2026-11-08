@@ -152,7 +152,7 @@ jobs:
       - name: Configure cluster and render manifests
         run: |
           aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$AWS_REGION"
-          sed -i "s/oficina-env/oficina-${{ env.DEPLOY_ENV }}/g; s/ENVIRONMENT/${{ env.DEPLOY_ENV }}/g; s/IMAGE_TAG/${IMAGE_TAG}/g; s|CORS_ORIGIN: \"CORS_ORIGIN\"|CORS_ORIGIN: \"${{ vars.CORS_ORIGIN }}\"|g" cloud-infra/k8s/*.yaml
+          sed -i "s/oficina-env/oficina-${{ env.DEPLOY_ENV }}/g; s/ENVIRONMENT/${{ env.DEPLOY_ENV }}/g; s/AWS_ACCOUNT_ID/${{ vars.AWS_ACCOUNT_ID }}/g; s/IMAGE_TAG/${IMAGE_TAG}/g; s|CORS_ORIGIN: \"CORS_ORIGIN\"|CORS_ORIGIN: \"${{ vars.CORS_ORIGIN }}\"|g" cloud-infra/k8s/*.yaml
       - name: Run controlled migration
         shell: bash
         run: |

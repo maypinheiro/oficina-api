@@ -1,6 +1,6 @@
-# Oficina API
+# Oficina OS Service
 
-API principal do sistema de oficina mecânica. Gerencia clientes, veículos, catálogo, estoque, ordens de serviço, orçamentos e métricas, com regras de negócio separadas da infraestrutura HTTP e da persistência.
+Serviço responsável pelo ciclo global da ordem de serviço e pela orquestração da Saga na Fase 4. Durante a migração incremental, o repositório ainda contém módulos legados de cadastro, catálogo, estoque e orçamento da Fase 3; esses módulos serão extraídos sem interromper a API existente.
 
 ## O que este repositório entrega
 
@@ -28,6 +28,11 @@ flowchart LR
 
 ## Documentação
 
+- [Fase 4 — mensageria básica, contratos, idempotência e DLQ](docs/fase4/fase3-mensageria-basica.md)
+- [Fase 4 — Saga orquestrada e compensações](docs/fase4/fase4-saga-implementada.md)
+- [Fase 4 — integração Mercado Pago e webhook seguro](docs/fase4/fase5-mercado-pago.md)
+- [Fase 4 — BDD executável do caminho feliz e da compensação](docs/fase4/fase6-bdd-saga.md)
+
 ### Entrega da Fase 3
 
 - [Visão completa da entrega, objetivos e arquitetura integrada](docs/fase3/entrega-tecnica.md)
@@ -35,6 +40,7 @@ flowchart LR
 - [Catálogo de evidências executadas e rastreabilidade no código](docs/fase3/catalogo-evidencias.md)
 - [Guia de demonstração e aceite](docs/fase3/guia-demonstracao-e-aceite.md)
 - [Índice de RFCs, ADRs e documentação](docs/fase3/README.md)
+- [Fase 4 — arquitetura de microsserviços e Saga](docs/fase4/README.md)
 - [Arquitetura-alvo e diagramas de sequência](docs/fase3/arquitetura-alvo.md)
 - [Matriz de rotas e permissões](docs/fase3/matriz-rotas-permissoes.md)
 - [Modelo de dados](docs/fase3/modelo-dados.md)
@@ -117,7 +123,7 @@ O CD é disparado automaticamente por `workflow_run` após o CI bem-sucedido de 
 
 ## Ambiente validado
 
-- Conta acadêmica: `982623100545`;
+- Conta acadêmica atual: `508274625814`; a conta anterior `982623100545` foi substituída pelo AWS Academy Learner Lab;
 - região: `us-east-1`;
 - API Gateway `hml`: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com>;
 - Swagger `hml`: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com/docs>;
