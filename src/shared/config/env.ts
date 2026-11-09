@@ -15,7 +15,11 @@ const envSchema = z.object({
   JWT_AUDIENCE: z.string().min(1).default("oficina-api"),
   ADMIN_USERNAME: z.string().min(1).default("admin"),
   ADMIN_PASSWORD: z.string().min(1).default("admin"),
-  CORS_ORIGIN: z.string().min(1).default("*")
+  CORS_ORIGIN: z.string().min(1).default("*"),
+  SAGA_ENABLED: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
+  OS_EVENTS_QUEUE_URL: z.string().url().optional(),
+  BILLING_COMMAND_QUEUE_URL: z.string().url().optional(),
+  EXECUTION_COMMAND_QUEUE_URL: z.string().url().optional()
 });
 
 export type Env = {
@@ -29,6 +33,10 @@ export type Env = {
   adminUsername: string;
   adminPassword: string;
   corsOrigin: string;
+  sagaEnabled: boolean;
+  osEventsQueueUrl?: string;
+  billingCommandQueueUrl?: string;
+  executionCommandQueueUrl?: string;
 };
 
 export function loadEnv(): Env {
@@ -44,6 +52,10 @@ export function loadEnv(): Env {
     jwtAudience: env.JWT_AUDIENCE,
     adminUsername: env.ADMIN_USERNAME,
     adminPassword: env.ADMIN_PASSWORD,
-    corsOrigin: env.CORS_ORIGIN
+    corsOrigin: env.CORS_ORIGIN,
+    sagaEnabled: env.SAGA_ENABLED,
+    osEventsQueueUrl: env.OS_EVENTS_QUEUE_URL,
+    billingCommandQueueUrl: env.BILLING_COMMAND_QUEUE_URL,
+    executionCommandQueueUrl: env.EXECUTION_COMMAND_QUEUE_URL
   };
 }
