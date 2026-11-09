@@ -20,20 +20,23 @@ export class PrismaSagaOrchestrator {
   constructor(private readonly prisma: PrismaClient) {}
 
   async start(orderId: string, correlationId: string, payload: Prisma.InputJsonValue): Promise<string> {
-    const result = transitionSaga("OS_CREATED", "StartSaga");
     return trace("saga.start", { "correlation.id": correlationId, "order.id": orderId }, async () => {
       const started = performance.now();
       try {
-        const sagaId = await this.prisma.$transaction(async (tx) => {
-          const saga = await tx.sagaInstancia.create({ data: { ordemServicoId: orderId, correlationId, etapaAtual: result.step, status: statusByStep(result.step) } });
-          await this.enqueue(tx, saga.id, orderId, correlationId, result.command!, payload); return saga.id;
-        });
+        const sagaId = await this.prisma.$transaction((tx) => this.startInTransaction(tx, orderId, correlationId, payload));
         metrics.increment("saga.started"); metrics.histogram("saga.start.duration_ms", performance.now() - started);
-        log("info", "saga_started", { correlationId, sagaId, ordemServicoId: orderId, sagaStep: result.step }); return sagaId;
+        log("info", "saga_started", { correlationId, sagaId, ordemServicoId: orderId, sagaStep: "WAITING_QUOTE" }); return sagaId;
       } catch (error) {
         metrics.increment("saga.failed", 1, ["phase:start"]); log("error", "saga_start_failed", { correlationId, ordemServicoId: orderId, errorType: error instanceof Error ? error.name : "UnknownError" }); throw error;
       }
     });
+  }
+
+  async startInTransaction(tx: Prisma.TransactionClient, orderId: string, correlationId: string, payload: Prisma.InputJsonValue): Promise<string> {
+    const result = transitionSaga("OS_CREATED", "StartSaga");
+    const saga = await tx.sagaInstancia.create({ data: { ordemServicoId: orderId, correlationId, etapaAtual: result.step, status: statusByStep(result.step) } });
+    await this.enqueue(tx, saga.id, orderId, correlationId, result.command!, payload);
+    return saga.id;
   }
 
   async consume(message: MessageEnvelope): Promise<"processed" | "duplicate"> {
