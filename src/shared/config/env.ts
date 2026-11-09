@@ -19,6 +19,7 @@ const envSchema = z.object({
   SAGA_ENABLED: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
   OS_EVENTS_QUEUE_URL: z.string().url().optional(),
   BILLING_COMMAND_QUEUE_URL: z.string().url().optional(),
+  BILLING_SERVICE_URL: z.string().url().default("http://oficina-billing-service.oficina-billing.svc.cluster.local"),
   EXECUTION_COMMAND_QUEUE_URL: z.string().url().optional()
 });
 
@@ -36,6 +37,7 @@ export type Env = {
   sagaEnabled: boolean;
   osEventsQueueUrl?: string;
   billingCommandQueueUrl?: string;
+  billingServiceUrl: string;
   executionCommandQueueUrl?: string;
 };
 
@@ -56,6 +58,7 @@ export function loadEnv(): Env {
     sagaEnabled: env.SAGA_ENABLED,
     osEventsQueueUrl: env.OS_EVENTS_QUEUE_URL,
     billingCommandQueueUrl: env.BILLING_COMMAND_QUEUE_URL,
+    billingServiceUrl: env.BILLING_SERVICE_URL,
     executionCommandQueueUrl: env.EXECUTION_COMMAND_QUEUE_URL
   };
 }
