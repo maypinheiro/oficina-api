@@ -20,6 +20,10 @@ import { BuscarOrdemServicoUseCase, ConsultarStatusOrdemServicoUseCase, CriarOrd
 import { PrismaAtualizarStatusOrdemServicoRepository } from "../../contexts/atendimento/infra/prisma-atualizar-status-ordem-servico.repository";
 import { PrismaConsultarOrdemServicoRepository } from "../../contexts/atendimento/infra/prisma-consultar-ordem-servico.repository";
 import { PrismaCriarOrdemServicoRepository } from "../../contexts/atendimento/infra/prisma-criar-ordem-servico.repository";
+import { PrismaSagaOrchestrator } from "../../contexts/saga/infra/prisma-saga-orchestrator";
+import { loadEnv } from "../../shared/config/env";
+import { randomUUID } from "node:crypto";
+import { Prisma } from "@prisma/client";
 import { AuthController } from "./controllers/auth.controller";
 import { CadastroController } from "./controllers/cadastro.controller";
 import { CatalogoController } from "./controllers/catalogo.controller";
@@ -45,6 +49,7 @@ export type HttpContext = {
 };
 
 export function createHttpContext(prisma: PrismaClient): HttpContext {
+  const env = loadEnv();
   const clienteRepository = new PrismaClienteCadastroRepository(prisma);
   const veiculoRepository = new PrismaVeiculoCadastroRepository(prisma);
   const servicoRepository = new PrismaServicoCatalogoRepository(prisma);
@@ -53,7 +58,15 @@ export function createHttpContext(prisma: PrismaClient): HttpContext {
   const estoqueRepository = new PrismaEstoqueRepository(prisma);
   const metricaRepository = new PrismaMetricasRepository(prisma);
   const orcamentoRepository = new PrismaOrcamentoRepository(prisma);
-  const ordemCriacaoRepository = new PrismaCriarOrdemServicoRepository(prisma);
+  const sagaOrchestrator = new PrismaSagaOrchestrator(prisma);
+  const ordemCriacaoRepository = new PrismaCriarOrdemServicoRepository(
+    prisma,
+    env.sagaEnabled
+      ? async (tx, orderId, input) => {
+          await sagaOrchestrator.startInTransaction(tx, orderId, randomUUID(), input as Prisma.InputJsonValue);
+        }
+      : undefined
+  );
   const ordemConsultaRepository = new PrismaConsultarOrdemServicoRepository(prisma);
   const ordemStatusRepository = new PrismaAtualizarStatusOrdemServicoRepository(prisma);
 
