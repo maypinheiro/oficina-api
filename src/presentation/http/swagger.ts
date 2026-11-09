@@ -888,6 +888,20 @@ export const openApiDocument = {
         }
       }
     },
+    "/public/billing/budgets/{numeroOs}/decision": {
+      post: {
+        tags: ["Publico"],
+        summary: "Aprova ou rejeita o orçamento no Billing Service",
+        description: "Fachada pública do OS Service. O Billing persiste a decisão e publica QuoteApproved ou QuoteRejected para continuidade ou compensação da Saga.",
+        parameters: [{ name: "numeroOs", in: "path", required: true, schema: { type: "string" }, example: "OS-SEED-003" }],
+        requestBody: json({ type: "object", required: ["decision"], properties: { decision: { type: "string", enum: ["approve", "reject"] } } }, { decision: "approve" }),
+        responses: {
+          "200": { description: "Decisão persistida e evento de domínio publicado" },
+          "400": { description: "Decisão inválida" },
+          "502": { description: "Billing Service indisponível" }
+        }
+      }
+    },
     "/orcamentos/{numeroOs}/aprovar": {
       patch: {
         tags: ["Orcamento"],

@@ -109,6 +109,7 @@ npm audit --audit-level=high
 
 - `/health`, `/docs`, autenticação e `/public/*`: públicos;
 - `/clientes`, `/veiculos`, `/servicos`, `/pecas`, `/estoque`, `/ordens-servico`, `/orcamentos` e `/metricas`: protegidos pelo Gateway;
+- `POST /public/billing/budgets/{numeroOs}/decision`: fachada pública que encaminha a aprovação ou rejeição ao Billing Service, proprietário do orçamento; a resposta gera `QuoteApproved`/`QuoteRejected` e continua a Saga por mensageria.
 - o fluxo administrativo legado permanece separado do JWT de clientes.
 
 Consulte a [matriz completa](docs/fase3/matriz-rotas-permissoes.md) e o Swagger.
