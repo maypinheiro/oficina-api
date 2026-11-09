@@ -209,6 +209,10 @@ jobs:
       - name: Deploy and verify rollout
         run: |
           kubectl apply -f cloud-infra/k8s/api.yaml -f cloud-infra/k8s/api-pdb.yaml -f cloud-infra/k8s/hpa.yaml
+          # A nova sessão do AWS Academy pode atualizar apenas Secrets/ConfigMaps,
+          # mantendo o template do Deployment igual. Reiniciar cria uma nova
+          # geração e limpa um ProgressDeadlineExceeded herdado do rollout anterior.
+          kubectl rollout restart deployment/oficina-api -n "oficina-${{ env.DEPLOY_ENV }}"
           kubectl rollout status deployment/oficina-api -n "oficina-${{ env.DEPLOY_ENV }}" --timeout=5m
           kubectl get deployment,pods,hpa -n "oficina-${{ env.DEPLOY_ENV }}" -o wide
       - name: Seed homologation data
