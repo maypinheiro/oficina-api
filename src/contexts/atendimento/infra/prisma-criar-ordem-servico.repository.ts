@@ -4,6 +4,7 @@ import { prepararItensOrcamentoComReserva } from "../../orcamento/infra/prisma-i
 import { gerarNumeroOs } from "../application/numero-os";
 import {
   CriarOrdemServicoInput,
+  CriarOrdemServicoSagaPayload,
   CriarOrdemServicoPort,
   OrdemServicoComOrcamentoInicial,
   OrdemServicoCriada
@@ -11,14 +12,19 @@ import {
 import {
   montarCriacaoOrcamentoInicial,
   montarCriacaoOrdemComOrcamentoInicial,
-  montarCriacaoOrdemRecebida
+  montarCriacaoOrdemRecebida,
+  montarPayloadSaga
 } from "./prisma-ordem-servico.builders";
 import { buscarClienteEVeiculoDaOrdem } from "./prisma-ordem-servico-consultas";
 
 export class PrismaCriarOrdemServicoRepository implements CriarOrdemServicoPort {
   constructor(
     private readonly prisma: PrismaClient,
-    private readonly startSaga?: (tx: Prisma.TransactionClient, orderId: string, input: CriarOrdemServicoInput) => Promise<void>
+    private readonly startSaga?: (
+      tx: Prisma.TransactionClient,
+      orderId: string,
+      input: CriarOrdemServicoSagaPayload
+    ) => Promise<void>
   ) {}
 
   async criar(input: CriarOrdemServicoInput): Promise<OrdemServicoCriada> {
@@ -28,7 +34,7 @@ export class PrismaCriarOrdemServicoRepository implements CriarOrdemServicoPort 
         data: montarCriacaoOrdemRecebida(input, cliente.id, veiculo.id, gerarNumeroOs()),
         include: { historico: true }
       });
-      await this.startSaga?.(tx, order.id, input);
+      await this.startSaga?.(tx, order.id, montarPayloadSaga(input, order.numeroOs, 0));
       return order;
     });
   }
@@ -55,7 +61,7 @@ export class PrismaCriarOrdemServicoRepository implements CriarOrdemServicoPort 
         include: { servicos: true, pecas: true }
       });
 
-      await this.startSaga?.(tx, ordem.id, input);
+      await this.startSaga?.(tx, ordem.id, montarPayloadSaga(input, ordem.numeroOs, itens.valorTotal));
 
       return {
         ordemServico: { numeroOs: ordem.numeroOs },
