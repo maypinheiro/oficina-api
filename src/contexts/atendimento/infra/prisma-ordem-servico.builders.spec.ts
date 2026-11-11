@@ -5,7 +5,8 @@ import {
   montarAtualizacaoStatusOrdem,
   montarCriacaoOrcamentoInicial,
   montarCriacaoOrdemComOrcamentoInicial,
-  montarCriacaoOrdemRecebida
+  montarCriacaoOrdemRecebida,
+  montarPayloadSaga
 } from "./prisma-ordem-servico.builders";
 
 describe("Prisma ordem de servico builders", () => {
@@ -51,6 +52,14 @@ describe("Prisma ordem de servico builders", () => {
       valorTotal: 20,
       servicos: { create: [{ servicoId: "servico-1", valor }] },
       pecas: { create: [{ pecaId: "peca-1", quantidade: 1, valorUnitario: valor }] }
+    });
+  });
+
+  it("monta o payload da Saga com identificador publico e valor do orcamento", () => {
+    expect(montarPayloadSaga(input, "OS-1", 210)).toEqual({
+      ...input,
+      orderNumber: "OS-1",
+      totalAmount: 210
     });
   });
 

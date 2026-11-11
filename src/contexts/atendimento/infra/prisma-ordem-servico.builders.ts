@@ -1,7 +1,10 @@
 import { Prisma } from "@prisma/client";
 
 import { StatusOrcamentoApp } from "../../orcamento/application/status-orcamento-app";
-import { CriarOrdemServicoInput } from "../application/ordem-servico.repository";
+import {
+  CriarOrdemServicoInput,
+  CriarOrdemServicoSagaPayload
+} from "../application/ordem-servico.repository";
 import { StatusOrdemServicoApp } from "../application/status-ordem-servico-app";
 
 export const problemaTecnicoPadraoParaOrcamentoInicial =
@@ -80,6 +83,18 @@ export function montarCriacaoOrcamentoInicial(
         valorUnitario: peca.valorUnitario
       }))
     }
+  };
+}
+
+export function montarPayloadSaga(
+  input: CriarOrdemServicoInput,
+  orderNumber: string,
+  totalAmount: number
+): CriarOrdemServicoSagaPayload {
+  return {
+    ...input,
+    orderNumber,
+    totalAmount
   };
 }
 

@@ -6,6 +6,11 @@ export type CriarOrdemServicoInput = {
   pecas?: PecaSolicitadaInput[];
 };
 
+export type CriarOrdemServicoSagaPayload = CriarOrdemServicoInput & {
+  orderNumber: string;
+  totalAmount: number;
+};
+
 export type PecaSolicitadaInput = {
   nome: string;
   quantidade: number;

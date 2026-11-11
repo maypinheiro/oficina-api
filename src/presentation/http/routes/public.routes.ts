@@ -6,11 +6,16 @@ import { apresentarDecisaoOrcamento } from "../presenters/orcamento.presenter";
 import { apresentarStatusOrdemServico } from "../presenters/ordem-servico.presenter";
 import { notificacaoDecisaoSchema } from "./schemas/orcamento.schemas";
 import { BillingDecisionGateway } from "../../../contexts/orcamento/infra/billing-decision.gateway";
+import { BillingOrderIdResolver } from "../../../contexts/orcamento/application/billing-order-id-resolver";
 import { z } from "zod";
 
 const billingDecisionSchema = z.object({ decision: z.enum(["approve", "reject"]) });
 
-export function createPublicRouter(controller: PublicController, billingDecisions: BillingDecisionGateway) {
+export function createPublicRouter(
+  controller: PublicController,
+  billingDecisions: BillingDecisionGateway,
+  billingOrderIds: BillingOrderIdResolver
+) {
   const router = Router();
 
   router.get(
@@ -26,7 +31,8 @@ export function createPublicRouter(controller: PublicController, billingDecision
     "/billing/budgets/:numeroOs/decision",
     asyncHandler(async (request, response) => {
       const input = billingDecisionSchema.parse(request.body);
-      response.status(200).json(await billingDecisions.decide(String(request.params.numeroOs), input.decision));
+      const orderId = await billingOrderIds.resolve(String(request.params.numeroOs));
+      response.status(200).json(await billingDecisions.decide(orderId, input.decision));
     })
   );
 

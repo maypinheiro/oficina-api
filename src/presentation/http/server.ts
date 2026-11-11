@@ -21,6 +21,7 @@ import { loadEnv } from "../../shared/config/env";
 import { createHttpContext } from "./http-context";
 import { observeHttp } from "./middlewares/observability";
 import { BillingDecisionGateway } from "../../contexts/orcamento/infra/billing-decision.gateway";
+import { PrismaBillingOrderIdResolver } from "../../contexts/orcamento/infra/prisma-billing-order-id.resolver";
 
 type ServerOptions = {
   prisma?: ReturnType<typeof getPrismaClient>;
@@ -40,7 +41,14 @@ export function createServer(options: ServerOptions = {}) {
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
   app.use("/health", createHealthRouter(httpContext.healthController));
   app.use("/auth", createAuthRouter(httpContext.authController));
-  app.use("/public", createPublicRouter(httpContext.publicController, new BillingDecisionGateway(env.billingServiceUrl)));
+  app.use(
+    "/public",
+    createPublicRouter(
+      httpContext.publicController,
+      new BillingDecisionGateway(env.billingServiceUrl),
+      new PrismaBillingOrderIdResolver(prisma)
+    )
+  );
   app.use("/clientes", authenticate, createClientesRouter(httpContext.cadastroController));
   app.use("/veiculos", authenticate, createVeiculosRouter(httpContext.veiculoController));
   app.use("/servicos", authenticate, createServicosRouter(httpContext.catalogoController));
