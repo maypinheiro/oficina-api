@@ -13,6 +13,7 @@ O OS Service decide todas as transições globais. Billing e Execution não conh
 | `WAITING_APPROVAL` | `QuoteApproved` | `EXECUTION_REQUESTED` | `StartExecution` |
 | `EXECUTION_REQUESTED` | `ExecutionStarted` | `IN_EXECUTION` | — |
 | `IN_EXECUTION` | `ExecutionCompleted` | `WAITING_PAYMENT` | `RequestPayment` |
+| `WAITING_PAYMENT` | `PaymentCreated` | `WAITING_PAYMENT` | — |
 | `WAITING_PAYMENT` | `PaymentConfirmed` | `COMPLETED` | — |
 
 Transições fora de ordem são rejeitadas. `COMPLETED`, `COMPENSATED` e `FAILED` são terminais.
@@ -22,6 +23,10 @@ Transições fora de ordem são rejeitadas. `COMPLETED`, `COMPENSATED` e `FAILED
 No OS Service, criação/atualização da Saga e inclusão na outbox ocorrem na mesma transação Prisma. O consumo também registra a inbox, usa controle otimista por `versao`, altera a etapa e cria o próximo comando atomicamente. Uma colisão em `messageId` retorna `duplicate` sem repetir efeitos.
 
 Billing usa `upsert` por `externalOrderId` e chave `payment:<orderId>` para tornar orçamento e pagamento repetíveis. Execution usa escrita condicional no DynamoDB para iniciar uma execução e atualização determinística para cancelá-la.
+
+A finalização operacional parte de `PATCH /ordens-servico/{numeroOs}/finalizar`. Quando a OS possui Saga em `IN_EXECUTION`, a rota não conclui o registro local diretamente: grava `CompleteExecution` na outbox de modo idempotente. O Execution Service valida o estado no DynamoDB, persiste `COMPLETED` e publica `ExecutionCompleted`. Somente esse fato atualiza a OS para `FINALIZADA` e faz o orquestrador emitir `RequestPayment`. O evento informativo `PaymentCreated` preserva `WAITING_PAYMENT`; `PaymentConfirmed` encerra a Saga.
+
+As transições confirmadas também sincronizam a projeção da OS: aprovação, início de execução, finalização e identificadores externos de orçamento, execução e pagamento ficam consultáveis pela API sem acesso aos bancos de Billing ou Execution.
 
 ## Compensação demonstrável
 
