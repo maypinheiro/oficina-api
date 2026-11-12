@@ -68,7 +68,12 @@ export function createHttpContext(prisma: PrismaClient): HttpContext {
       : undefined
   );
   const ordemConsultaRepository = new PrismaConsultarOrdemServicoRepository(prisma);
-  const ordemStatusRepository = new PrismaAtualizarStatusOrdemServicoRepository(prisma);
+  const ordemStatusRepository = new PrismaAtualizarStatusOrdemServicoRepository(
+    prisma,
+    env.sagaEnabled
+      ? (tx, orderId, orderNumber) => sagaOrchestrator.requestExecutionCompletionInTransaction(tx, orderId, orderNumber)
+      : undefined
+  );
 
   return {
     authController: new AuthController(),
