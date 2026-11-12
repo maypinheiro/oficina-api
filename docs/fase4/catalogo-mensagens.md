@@ -34,6 +34,7 @@
 | `CancelQuote` | OS | Billing | cancelar orçamento |
 | `CancelQuoteApproval` | OS | Billing | compensar aprovação |
 | `StartExecution` | OS | Execution | colocar OS em diagnóstico/execução |
+| `CompleteExecution` | OS | Execution | solicitar conclusão técnica da execução em andamento |
 | `CancelExecution` | OS | Execution | cancelar execução e liberar reservas |
 | `RequestPayment` | OS | Billing | criar cobrança após conclusão técnica |
 | `CancelPayment` | OS | Billing | cancelar cobrança não confirmada |

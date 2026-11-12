@@ -827,6 +827,7 @@ export const openApiDocument = {
         tags: ["Atendimento"],
         security: bearer,
         summary: "Finaliza servico",
+        description: "No fluxo distribuido, solicita de forma idempotente a conclusao ao Execution Service. O evento ExecutionCompleted atualiza a OS e dispara a cobranca; no modo legado, finaliza sincronamente.",
         parameters: [{ name: "numeroOs", in: "path", required: true, schema: { type: "string" }, example: "OS-SEED-005" }],
         responses: { "200": { description: "OK" } }
       }

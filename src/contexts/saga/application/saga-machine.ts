@@ -7,9 +7,9 @@ export type SagaEvent =
   | "StartSaga" | "QuoteCreated" | "QuoteApproved" | "QuoteRejected"
   | "QuoteCreationFailed" | "ExecutionStarted" | "ExecutionCompleted"
   | "ExecutionFailed" | "ExecutionCancelled" | "QuoteApprovalCancelled"
-  | "PaymentConfirmed" | "PaymentFailed";
+  | "PaymentCreated" | "PaymentConfirmed" | "PaymentFailed";
 
-export type SagaCommand = "CreateQuote" | "StartExecution" | "RequestPayment" | "CancelExecution" | "CancelQuoteApproval" | "CancelQuote";
+export type SagaCommand = "CreateQuote" | "StartExecution" | "CompleteExecution" | "RequestPayment" | "CancelExecution" | "CancelQuoteApproval" | "CancelQuote";
 
 export interface SagaTransition { step: SagaStep; command?: SagaCommand; terminal?: "COMPLETED" | "COMPENSATED" | "FAILED" }
 
@@ -32,6 +32,7 @@ const transitions: Record<SagaStep, Partial<Record<SagaEvent, SagaTransition>>> 
     ExecutionFailed: { step: "COMPENSATING_EXECUTION", command: "CancelExecution" },
   },
   WAITING_PAYMENT: {
+    PaymentCreated: { step: "WAITING_PAYMENT" },
     PaymentConfirmed: { step: "COMPLETED", terminal: "COMPLETED" },
     PaymentFailed: { step: "FAILED", terminal: "FAILED" },
   },
