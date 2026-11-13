@@ -903,6 +903,22 @@ export const openApiDocument = {
         }
       }
     },
+    "/billing/payments/{numeroOs}/simulate": {
+      post: {
+        tags: ["Saga"],
+        security: bearer,
+        summary: "Simula o resultado do pagamento exclusivamente em homologacao",
+        description: "Endpoint administrativo de evidencia da Saga. So funciona quando o Billing usa o provedor mock e PAYMENT_SIMULATION_ENABLED=true; em producao permanece indisponivel.",
+        parameters: [{ name: "numeroOs", in: "path", required: true, schema: { type: "string" }, example: "OS-1794527890365" }],
+        requestBody: json({ type: "object", required: ["status"], properties: { status: { type: "string", enum: ["approved", "rejected"] } } }, { status: "approved" }),
+        responses: {
+          "200": { description: "Webhook interno processado e evento PaymentConfirmed ou PaymentFailed gravado na outbox" },
+          "401": { description: "JWT administrativo ausente ou invalido" },
+          "404": { description: "Simulacao desabilitada ou pagamento nao encontrado" },
+          "502": { description: "Billing Service indisponivel" }
+        }
+      }
+    },
     "/orcamentos/{numeroOs}/aprovar": {
       patch: {
         tags: ["Orcamento"],

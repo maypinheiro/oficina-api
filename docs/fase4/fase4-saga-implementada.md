@@ -28,6 +28,10 @@ A finalização operacional parte de `PATCH /ordens-servico/{numeroOs}/finalizar
 
 As transições confirmadas também sincronizam a projeção da OS: aprovação, início de execução, finalização e identificadores externos de orçamento, execução e pagamento ficam consultáveis pela API sem acesso aos bancos de Billing ou Execution.
 
+### Fechamento do pagamento em homologação
+
+O resultado do pagamento percorre o mesmo caminho do webhook do Mercado Pago: atualização transacional do pagamento, gravação de `PaymentConfirmed` ou `PaymentFailed` na outbox do Billing e publicação assíncrona no SNS. Para evidência acadêmica sem credenciais financeiras reais, a rota administrativa autenticada `POST /billing/payments/{numeroOs}/simulate` encaminha `approved` ou `rejected` ao simulador interno. Ela só responde quando o Billing está com provedor `mock` e `PAYMENT_SIMULATION_ENABLED=true`; em produção permanece indisponível.
+
 ## Compensação demonstrável
 
 ```mermaid

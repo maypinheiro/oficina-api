@@ -22,6 +22,7 @@ import { createHttpContext } from "./http-context";
 import { observeHttp } from "./middlewares/observability";
 import { BillingDecisionGateway } from "../../contexts/orcamento/infra/billing-decision.gateway";
 import { PrismaBillingOrderIdResolver } from "../../contexts/orcamento/infra/prisma-billing-order-id.resolver";
+import { createBillingRouter } from "./routes/billing.routes";
 
 type ServerOptions = {
   prisma?: ReturnType<typeof getPrismaClient>;
@@ -32,6 +33,8 @@ export function createServer(options: ServerOptions = {}) {
   const prisma = options.prisma ?? getPrismaClient();
   const env = loadEnv();
   const httpContext = createHttpContext(prisma);
+  const billing = new BillingDecisionGateway(env.billingServiceUrl);
+  const billingOrderIds = new PrismaBillingOrderIdResolver(prisma);
 
   app.use(helmet());
   app.use(cors({ origin: env.corsOrigin }));
@@ -45,10 +48,11 @@ export function createServer(options: ServerOptions = {}) {
     "/public",
     createPublicRouter(
       httpContext.publicController,
-      new BillingDecisionGateway(env.billingServiceUrl),
-      new PrismaBillingOrderIdResolver(prisma)
+      billing,
+      billingOrderIds
     )
   );
+  app.use("/billing", authenticate, createBillingRouter(billing, billingOrderIds));
   app.use("/clientes", authenticate, createClientesRouter(httpContext.cadastroController));
   app.use("/veiculos", authenticate, createVeiculosRouter(httpContext.veiculoController));
   app.use("/servicos", authenticate, createServicosRouter(httpContext.catalogoController));
