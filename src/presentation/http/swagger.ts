@@ -772,6 +772,20 @@ export const openApiDocument = {
         }
       }
     },
+    "/ordens-servico/{numeroOs}/saga": {
+      get: {
+        tags: ["Saga"],
+        security: bearer,
+        summary: "Consulta a evidência de execução da Saga da OS",
+        description: "Retorna estado técnico, etapa atual, correlationId e timestamps sem expor payloads ou segredos.",
+        parameters: [{ name: "numeroOs", in: "path", required: true, schema: { type: "string" }, example: "OS-1794527890365" }],
+        responses: {
+          "200": { description: "Estado atual da Saga, incluindo COMPLETED, COMPENSATED ou FAILED" },
+          "401": { description: "JWT administrativo ausente ou invalido" },
+          "404": { description: "OS ou Saga nao encontrada" }
+        }
+      }
+    },
     "/ordens-servico/{numeroOs}/historico": {
       get: {
         tags: ["Atendimento"],

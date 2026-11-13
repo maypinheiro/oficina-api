@@ -23,6 +23,8 @@ import { observeHttp } from "./middlewares/observability";
 import { BillingDecisionGateway } from "../../contexts/orcamento/infra/billing-decision.gateway";
 import { PrismaBillingOrderIdResolver } from "../../contexts/orcamento/infra/prisma-billing-order-id.resolver";
 import { createBillingRouter } from "./routes/billing.routes";
+import { createSagaRouter } from "./routes/saga.routes";
+import { PrismaSagaStatusQuery } from "../../contexts/saga/infra/prisma-saga-status.query";
 
 type ServerOptions = {
   prisma?: ReturnType<typeof getPrismaClient>;
@@ -59,6 +61,7 @@ export function createServer(options: ServerOptions = {}) {
   app.use("/pecas", authenticate, createPecasRouter(httpContext.catalogoController));
   app.use("/estoque", authenticate, createEstoqueRouter(httpContext.estoqueController));
   app.use("/ordens-servico", authenticate, createOrdensServicoRouter(httpContext.ordemServicoController));
+  app.use("/ordens-servico", authenticate, createSagaRouter(new PrismaSagaStatusQuery(prisma)));
   app.use("/orcamentos", authenticate, createOrcamentosRouter(httpContext.orcamentoController));
   app.use("/metricas", authenticate, createMetricasRouter(httpContext.metricaController));
 
