@@ -2,6 +2,12 @@ import { ApplicationError } from "../../../shared/application/application-error"
 
 export type BillingDecision = "approve" | "reject";
 export type BillingDecisionResult = { status: "APPROVED" | "REJECTED"; event: "QuoteApproved" | "QuoteRejected" };
+export type BillingPaymentSimulationResult = {
+  paymentId: string;
+  externalPaymentId: string;
+  status: "approved" | "rejected";
+  result: "processed" | "duplicate" | "ignored";
+};
 
 type Fetch = (input: string, init: RequestInit) => Promise<Pick<Response, "ok" | "status" | "json">>;
 
@@ -18,5 +24,17 @@ export class BillingDecisionGateway {
       throw new ApplicationError(response.status >= 400 && response.status < 500 ? response.status : 502, "Billing Service indisponivel");
     }
     return response.json() as Promise<BillingDecisionResult>;
+  }
+
+  async simulatePayment(orderId: string, status: "approved" | "rejected"): Promise<BillingPaymentSimulationResult> {
+    const response = await this.fetchFn(`${this.baseUrl}/payments/${encodeURIComponent(orderId)}/simulate`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ status })
+    });
+    if (!response.ok) {
+      throw new ApplicationError(response.status >= 400 && response.status < 500 ? response.status : 502, "Simulacao de pagamento indisponivel");
+    }
+    return response.json() as Promise<BillingPaymentSimulationResult>;
   }
 }
