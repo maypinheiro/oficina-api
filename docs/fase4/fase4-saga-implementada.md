@@ -52,6 +52,8 @@ sequenceDiagram
 
 O cancelamento é sequencial e inverso aos efeitos confirmados. A Saga somente termina compensada após receber as duas confirmações.
 
+Em homologação, a rota administrativa autenticada `POST /ordens-servico/{numeroOs}/saga/simulate-execution-failure` permite demonstrar o rollback sem provocar uma pane real. Ela só é habilitada quando `DD_ENV=hml`, aceita apenas Sagas em `IN_EXECUTION` e injeta `ExecutionFailed` no orquestrador. A partir desse ponto, os comandos `CancelExecution` e `CancelQuoteApproval`, as alterações nos bancos proprietários e os eventos de confirmação percorrem as filas e serviços reais. Produção responde como rota indisponível.
+
 ## Evidências
 
 - caminho feliz até `PaymentConfirmed`;
