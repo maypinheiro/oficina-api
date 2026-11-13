@@ -32,6 +32,8 @@ flowchart LR
 - [Fase 4 — Saga orquestrada e compensações](docs/fase4/fase4-saga-implementada.md)
 - [Fase 4 — integração Mercado Pago e webhook seguro](docs/fase4/fase5-mercado-pago.md)
 - [Fase 4 — BDD executável do caminho feliz e da compensação](docs/fase4/fase6-bdd-saga.md)
+- [Fase 4 — matriz de conformidade](docs/fase4/matriz-conformidade.md)
+- [Fase 4 — catálogo de evidências](docs/fase4/catalogo-evidencias.md)
 
 ### Entrega da Fase 3
 
@@ -63,8 +65,8 @@ flowchart LR
 
 ### API publicada e Swagger
 
-- Swagger/OpenAPI de homologação: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com/docs/>
-- URL base da API: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com>
+- Swagger/OpenAPI de homologação: <https://1stuihvf8d.execute-api.us-east-1.amazonaws.com/docs/>
+- URL base da API: <https://1stuihvf8d.execute-api.us-east-1.amazonaws.com>
 - Contratos e exemplos adicionais: [APIs e fluxos](docs/apis.md)
 
 Repositórios relacionados: [autenticação](https://github.com/maypinheiro/oficina-auth-function), [Kubernetes](https://github.com/maypinheiro/oficina-k8s-infra) e [banco](https://github.com/maypinheiro/oficina-database-infra).
@@ -130,10 +132,10 @@ O CD é disparado automaticamente por `workflow_run` após o CI bem-sucedido de 
 
 ## Ambiente validado
 
-- Conta acadêmica atual: `508274625814`; a conta anterior `982623100545` foi substituída pelo AWS Academy Learner Lab;
+- Conta acadêmica atual: `533267045718`; contas anteriores do Learner Lab foram encerradas e não são reutilizadas;
 - região: `us-east-1`;
-- API Gateway `hml`: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com>;
-- Swagger `hml`: <https://9o7vnq3io0.execute-api.us-east-1.amazonaws.com/docs>;
+- API Gateway `hml`: <https://1stuihvf8d.execute-api.us-east-1.amazonaws.com>;
+- Swagger `hml`: <https://1stuihvf8d.execute-api.us-east-1.amazonaws.com/docs/>;
 - evidência do fluxo protegido: <https://github.com/maypinheiro/oficina-auth-function/actions/runs/34617351925>.
 - dashboards: [API](https://app.datadoghq.com/dashboard/uhc-x7j-d3i), [Kubernetes](https://app.datadoghq.com/dashboard/cfp-bd3-ayn) e [Negócio](https://app.datadoghq.com/dashboard/i9b-paf-7z5).
 
