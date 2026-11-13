@@ -27,6 +27,7 @@ describe("loadEnv", () => {
     process.env.BILLING_COMMAND_QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/123/billing";
     process.env.BILLING_SERVICE_URL = "http://billing.test";
     process.env.EXECUTION_COMMAND_QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/123/execution";
+    process.env.DD_ENV = "hml";
 
     expect(loadEnv()).toEqual({
       nodeEnv: "test",
@@ -43,7 +44,8 @@ describe("loadEnv", () => {
       osEventsQueueUrl: "https://sqs.us-east-1.amazonaws.com/123/os-events",
       billingCommandQueueUrl: "https://sqs.us-east-1.amazonaws.com/123/billing",
       billingServiceUrl: "http://billing.test",
-      executionCommandQueueUrl: "https://sqs.us-east-1.amazonaws.com/123/execution"
+      executionCommandQueueUrl: "https://sqs.us-east-1.amazonaws.com/123/execution",
+      sagaSimulationEnabled: true
     });
   });
 
@@ -63,6 +65,7 @@ describe("loadEnv", () => {
     delete process.env.BILLING_COMMAND_QUEUE_URL;
     delete process.env.BILLING_SERVICE_URL;
     delete process.env.EXECUTION_COMMAND_QUEUE_URL;
+    delete process.env.DD_ENV;
 
     expect(loadEnv()).toEqual({
       nodeEnv: "development",
@@ -79,7 +82,8 @@ describe("loadEnv", () => {
       osEventsQueueUrl: undefined,
       billingCommandQueueUrl: undefined,
       billingServiceUrl: "http://oficina-billing-service.oficina-billing.svc.cluster.local",
-      executionCommandQueueUrl: undefined
+      executionCommandQueueUrl: undefined,
+      sagaSimulationEnabled: false
     });
   });
 });
