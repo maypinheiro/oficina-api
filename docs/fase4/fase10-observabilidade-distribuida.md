@@ -70,6 +70,16 @@ Monitores mínimos:
 
 Billing e Execution definem `DD_SERVICE`, `DD_ENV`, `DD_VERSION`, `DD_AGENT_HOST`, portas APM/DogStatsD, runtime metrics, log injection e estilos de propagação. O OS Service mantém a configuração equivalente no repositório de infraestrutura Kubernetes da Fase 3. O Datadog Agent continua como DaemonSet compartilhado; nenhum serviço recebe `DD_API_KEY` diretamente.
 
+## Infraestrutura versionada
+
+O [PR #77 da infraestrutura](https://github.com/maypinheiro/oficina-k8s-infra/pull/77)
+versiona o dashboard da Saga, o stream de logs e os monitores de falha
+transacional, consumidor, DLQ, ausência de telemetria, compensação acima do
+baseline, latência e réplicas indisponíveis. O pipeline não contém IDs da
+organização Datadog: API Key e Application Key do Environment selecionam a
+organização e o Terraform publica os links pelo output
+`datadog_dashboard_urls`.
+
 ## Evidências e gate
 
 - código, testes e manifests: concluídos;
@@ -79,4 +89,8 @@ Billing e Execution definem `DD_SERVICE`, `DD_ENV`, `DD_VERSION`, `DD_AGENT_HOST
 - tráfego real gerado em HML para um caminho feliz e uma compensação;
 - filas de comandos e DLQs verificadas sem mensagens disponíveis, em voo ou atrasadas após os testes;
 - IDs e consultas para conferência no [catálogo de evidências](catalogo-evidencias.md);
-- pendência: autenticar no Datadog e confirmar visualmente logs, spans, métricas, dashboards e monitores antes de declarar o aceite final de observabilidade.
+- a nova organização Datadog está autenticada e suas chaves estão cadastradas no
+  Environment `hml`;
+- pendência operacional: aplicar o PR #77 com um trio STS válido do AWS Academy,
+  gerar novamente os dois fluxos e confirmar visualmente logs, spans, métricas,
+  dashboards e monitores antes do aceite final.

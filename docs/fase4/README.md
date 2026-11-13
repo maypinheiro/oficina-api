@@ -50,8 +50,11 @@ compensação foram executados em HML. Consulte a [matriz de
 conformidade](matriz-conformidade.md) para a auditoria requisito a requisito e o
 [catálogo de evidências](catalogo-evidencias.md) para ordens, correlações e runs.
 
-Restam como atividades de fechamento a confirmação visual no Datadog, a
-gravação do vídeo da Fase 4 e a geração do PDF final para o portal.
+Restam como atividades de fechamento o apply e a confirmação visual na nova
+organização Datadog, a gravação do vídeo da Fase 4 e a geração do PDF final para
+o portal. A infraestrutura da observabilidade está versionada no
+[PR #77](https://github.com/maypinheiro/oficina-k8s-infra/pull/77) e aguarda
+somente um trio STS válido do AWS Academy para provisionamento.
 
 ## Estado da Fase 0
 

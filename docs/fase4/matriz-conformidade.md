@@ -1,6 +1,6 @@
 # Matriz de conformidade — Fase 4
 
-Atualização: 12/11/2026 (`America/Sao_Paulo`). Esta matriz relaciona cada requisito oficial à implementação, à evidência reproduzível e às limitações do AWS Academy Learner Lab.
+Atualização: 13/11/2026 (`America/Sao_Paulo`). Esta matriz relaciona cada requisito oficial à implementação, à evidência reproduzível e às limitações do AWS Academy Learner Lab.
 
 ## Microsserviços e dados
 
@@ -36,7 +36,7 @@ Atualização: 12/11/2026 (`America/Sao_Paulo`). Esta matriz relaciona cada requ
 | Pipeline independente de build, testes, qualidade e deploy Kubernetes | Atendido | Cada repositório possui CI e CD. `workflow_run` inicia CD após CI em `homolog`/`main`; `workflow_dispatch` é contingência. |
 | `main` protegida por PR e checagens | Atendido | Proteção aplicada com administração incluída, revisão de PR habilitada, branches atualizadas descartando revisão anterior e checks obrigatórios `validate` (OS) ou `quality` (Billing/Execution). Como o projeto tem uma única participante, a quantidade mínima de aprovações é zero. |
 | Deploy Kubernetes automatizado | Atendido em HML | Imagem imutável, manifests, rollout, probes, recursos, HPA e PDB. Produção é protegida pelo GitHub Environment e não foi executada. |
-| Observabilidade da Fase 3 | Implementada; conferência visual pendente | Datadog Agent compartilhado, APM, logs JSON, DogStatsD e IDs de correlação estão configurados. A validação visual final do fluxo distribuído depende de uma sessão autenticada no Datadog. |
+| Observabilidade da Fase 3 | Implementada; novo provisionamento pendente | Datadog Agent compartilhado, APM, logs JSON, DogStatsD e IDs de correlação estão configurados. Dashboard e monitores distribuídos estão versionados no [PR #77](https://github.com/maypinheiro/oficina-k8s-infra/pull/77); o apply e a conferência visual aguardam o trio STS atual do AWS Academy. |
 
 ## Entregáveis
 
@@ -45,13 +45,13 @@ Atualização: 12/11/2026 (`America/Sao_Paulo`). Esta matriz relaciona cada requ
 | Código, Dockerfile, Kubernetes e CI/CD por serviço | Atendido | Raiz de cada um dos três repositórios. |
 | Evidência de cobertura | Atendido | Comando `npm run test:coverage`, gates dos workflows e números reproduzidos nesta matriz. |
 | Documentação da arquitetura | Atendido | [Arquitetura final](arquitetura-alvo.md), [Saga](saga-orquestrada.md), RFCs, ADRs e documentação específica nos READMEs. |
-| Swagger ou collection Postman atualizada | Atendido | [Swagger do OS Service](https://1stuihvf8d.execute-api.us-east-1.amazonaws.com/docs/), [OpenAPI do Billing](https://github.com/maypinheiro/oficina-billing-service/blob/develop/docs/openapi.yaml) e [OpenAPI do Execution](https://github.com/maypinheiro/oficina-execution-service/blob/develop/docs/openapi.yaml). |
+| Swagger ou collection Postman atualizada | Atendido | [Swagger do OS Service](https://1stuihvf8d.execute-api.us-east-1.amazonaws.com/docs/), [OpenAPI do Billing](https://github.com/maypinheiro/oficina-billing-service/blob/main/docs/openapi.yaml) e [OpenAPI do Execution](https://github.com/maypinheiro/oficina-execution-service/blob/main/docs/openapi.yaml). |
 | Vídeo de até 15 minutos | Pendente da Fase 4 | Deve demonstrar fluxo completo, compensação, deploy automatizado e rastreamento distribuído. O vídeo da Fase 3 não substitui este entregável. |
 | PDF final do portal | Pendente de fechamento | Deve reunir participantes, links dos três repositórios, vídeo, arquitetura, estratégia Saga e justificativas. O conteúdo técnico já está organizado neste diretório. |
 
 ## Pendências reais para encerramento
 
-1. autenticar no Datadog e registrar evidência visual dos dois `correlationId` do catálogo;
+1. atualizar o trio STS, aplicar a observabilidade na nova organização Datadog e registrar evidência visual dos dois fluxos do catálogo;
 2. gravar e publicar o vídeo da Fase 4 em YouTube ou Vimeo;
 3. gerar o PDF final com os links definitivos do vídeo e dos repositórios;
 4. opcionalmente executar Mercado Pago Sandbox se forem disponibilizadas credenciais acadêmicas; o adapter e seus testes já atendem ao contrato técnico.
