@@ -10,6 +10,8 @@ arquitetura e o fluxo transacional antes da extração de código do monólito.
 - [Fase 5 — integração Mercado Pago](fase5-mercado-pago.md)
 - [Fase 6 — BDD ponta a ponta da Saga](fase6-bdd-saga.md)
 - [Fase 10 — observabilidade distribuída](fase10-observabilidade-distribuida.md)
+- [Matriz de conformidade com os requisitos oficiais](matriz-conformidade.md)
+- [Catálogo de evidências de HML, testes e CI/CD](catalogo-evidencias.md)
 
 | Tema | Decisão |
 |---|---|
@@ -39,6 +41,17 @@ arquitetura e o fluxo transacional antes da extração de código do monólito.
 
 - [Fase 1 — preparação dos repositórios](fase1-preparacao-repositorios.md)
 - [Fase 2 — separação dos dados](fase2-separacao-dados.md)
+
+## Estado atual da entrega
+
+Os três serviços, os bancos isolados, a mensageria, a Saga, as compensações,
+os testes, o BDD e o CI/CD Kubernetes estão implementados. O caminho feliz e a
+compensação foram executados em HML. Consulte a [matriz de
+conformidade](matriz-conformidade.md) para a auditoria requisito a requisito e o
+[catálogo de evidências](catalogo-evidencias.md) para ordens, correlações e runs.
+
+Restam como atividades de fechamento a confirmação visual no Datadog, a
+gravação do vídeo da Fase 4 e a geração do PDF final para o portal.
 
 ## Estado da Fase 0
 

@@ -72,8 +72,11 @@ Billing e Execution definem `DD_SERVICE`, `DD_ENV`, `DD_VERSION`, `DD_AGENT_HOST
 
 ## Evidências e gate
 
-- Código, testes e manifests: concluídos nesta fase;
-- testes locais: Billing 20/20, Execution 13/13 e OS Service 108/108;
-- cobertura: Billing 97,87% de linhas e Execution 98,57%;
-- dashboards, monitores e captura de um fluxo real: validar na Fase 11 com o Learner Lab ativo;
-- aceite final: localizar a mesma OS nos três serviços pelo `correlationId`/`sagaId` e apresentar spans e métricas do caminho feliz e da compensação.
+- código, testes e manifests: concluídos;
+- testes locais reproduzidos: OS Service 125/125, Billing 37/37 e Execution 15/15;
+- cobertura de linhas: OS 89,82%, Billing 94,18% e Execution 95,68%;
+- cobertura de branches: OS 80,95%, Billing 80,34% e Execution 80,83%;
+- tráfego real gerado em HML para um caminho feliz e uma compensação;
+- filas de comandos e DLQs verificadas sem mensagens disponíveis, em voo ou atrasadas após os testes;
+- IDs e consultas para conferência no [catálogo de evidências](catalogo-evidencias.md);
+- pendência: autenticar no Datadog e confirmar visualmente logs, spans, métricas, dashboards e monitores antes de declarar o aceite final de observabilidade.
