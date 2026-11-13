@@ -9,13 +9,14 @@ const json = (schema: unknown, example?: unknown) => ({
 });
 
 const bearer = [{ bearerAuth: [] }];
+const sagaOrderParameter = [{ name: "numeroOs", in: "path", required: true, schema: { type: "string" }, example: "OS-1794527890365" }];
 
 const authenticatedOrderQuery = (summary: string, description: string, success: string) => ({
   tags: ["Saga"],
   security: bearer,
   summary,
   description,
-  parameters: [{ name: "numeroOs", in: "path", required: true, schema: { type: "string" }, example: "OS-1794527890365" }],
+  parameters: sagaOrderParameter,
   responses: {
     "200": { description: success },
     "401": { description: "JWT administrativo ausente ou invalido" },
@@ -791,6 +792,20 @@ export const openApiDocument = {
         "Retorna estado técnico, etapa atual, correlationId e timestamps sem expor payloads ou segredos.",
         "Estado atual da Saga, incluindo COMPLETED, COMPENSATED ou FAILED"
       )
+    },
+    "/ordens-servico/{numeroOs}/saga/simulate-execution-failure": {
+      post: {
+        tags: ["Saga"],
+        security: bearer,
+        summary: "Dispara uma falha controlada de execução exclusivamente em homologação",
+        description: "Injeta ExecutionFailed no orquestrador. CancelExecution e CancelQuoteApproval continuam sendo processados de forma assíncrona pelos microsserviços reais.",
+        parameters: sagaOrderParameter,
+        responses: {
+          "202": { description: "Falha aceita; acompanhe a compensação em GET /ordens-servico/{numeroOs}/saga" },
+          "404": { description: "Simulação desabilitada, OS ou Saga inexistente" },
+          "422": { description: "Saga não está em IN_EXECUTION" }
+        }
+      }
     },
     "/ordens-servico/{numeroOs}/historico": {
       get: {
