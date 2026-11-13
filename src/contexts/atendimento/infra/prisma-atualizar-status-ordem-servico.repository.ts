@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 import { ApplicationError } from "../../../shared/application/application-error";
 import {
@@ -15,7 +15,14 @@ import { buscarOrdemServicoObrigatoriaPorNumero, consumirReservasDoOrcamento } f
 import { historicoOrdenadoInclude } from "./prisma-ordem-servico.mapper";
 
 export class PrismaAtualizarStatusOrdemServicoRepository implements AtualizarStatusOrdemServicoPort {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(
+    private readonly prisma: PrismaClient,
+    private readonly requestExecutionCompletion?: (
+      tx: Prisma.TransactionClient,
+      orderId: string,
+      orderNumber: string
+    ) => Promise<void>
+  ) {}
 
   async iniciarDiagnostico(numeroOs: string): Promise<OrdemServicoStatusAtualizada> {
     const ordem = await buscarOrdemServicoObrigatoriaPorNumero(this.prisma, numeroOs);
@@ -66,9 +73,20 @@ export class PrismaAtualizarStatusOrdemServicoRepository implements AtualizarSta
   }
 
   async finalizar(numeroOs: string): Promise<OrdemServicoStatusAtualizada> {
-    const ordem = await buscarOrdemServicoObrigatoriaPorNumero(this.prisma, numeroOs);
+    const ordem = await this.prisma.ordemDeServico.findUnique({ where: { numeroOs }, include: { saga: true } });
+
+    if (!ordem) {
+      throw new ApplicationError(404, "Ordem de servico nao encontrada");
+    }
 
     validarFinalizacao(ordem.status);
+
+    if (ordem.saga && this.requestExecutionCompletion) {
+      return this.prisma.$transaction(async (tx) => {
+        await this.requestExecutionCompletion!(tx, ordem.id, ordem.numeroOs);
+        return tx.ordemDeServico.findUniqueOrThrow({ where: { id: ordem.id }, include: historicoOrdenadoInclude });
+      });
+    }
 
     return this.alterarStatus(ordem.id, StatusOrdemServicoApp.Finalizada, { dataFinalizacao: new Date() });
   }

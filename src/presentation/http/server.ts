@@ -20,6 +20,13 @@ import { createVeiculosRouter } from "./routes/veiculos.routes";
 import { loadEnv } from "../../shared/config/env";
 import { createHttpContext } from "./http-context";
 import { observeHttp } from "./middlewares/observability";
+import { BillingDecisionGateway } from "../../contexts/orcamento/infra/billing-decision.gateway";
+import { PrismaBillingOrderIdResolver } from "../../contexts/orcamento/infra/prisma-billing-order-id.resolver";
+import { createBillingRouter } from "./routes/billing.routes";
+import { createSagaRouter } from "./routes/saga.routes";
+import { PrismaSagaStatusQuery } from "../../contexts/saga/infra/prisma-saga-status.query";
+import { HmlSagaFailureSimulator } from "../../contexts/saga/infra/hml-saga-failure-simulator";
+import { PrismaSagaOrchestrator } from "../../contexts/saga/infra/prisma-saga-orchestrator";
 
 type ServerOptions = {
   prisma?: ReturnType<typeof getPrismaClient>;
@@ -30,6 +37,11 @@ export function createServer(options: ServerOptions = {}) {
   const prisma = options.prisma ?? getPrismaClient();
   const env = loadEnv();
   const httpContext = createHttpContext(prisma);
+  const billing = new BillingDecisionGateway(env.billingServiceUrl);
+  const billingOrderIds = new PrismaBillingOrderIdResolver(prisma);
+  const failureSimulator = env.sagaSimulationEnabled
+    ? new HmlSagaFailureSimulator(prisma, new PrismaSagaOrchestrator(prisma))
+    : undefined;
 
   app.use(helmet());
   app.use(cors({ origin: env.corsOrigin }));
@@ -39,13 +51,22 @@ export function createServer(options: ServerOptions = {}) {
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
   app.use("/health", createHealthRouter(httpContext.healthController));
   app.use("/auth", createAuthRouter(httpContext.authController));
-  app.use("/public", createPublicRouter(httpContext.publicController));
+  app.use(
+    "/public",
+    createPublicRouter(
+      httpContext.publicController,
+      billing,
+      billingOrderIds
+    )
+  );
+  app.use("/billing", authenticate, createBillingRouter(billing, billingOrderIds));
   app.use("/clientes", authenticate, createClientesRouter(httpContext.cadastroController));
   app.use("/veiculos", authenticate, createVeiculosRouter(httpContext.veiculoController));
   app.use("/servicos", authenticate, createServicosRouter(httpContext.catalogoController));
   app.use("/pecas", authenticate, createPecasRouter(httpContext.catalogoController));
   app.use("/estoque", authenticate, createEstoqueRouter(httpContext.estoqueController));
   app.use("/ordens-servico", authenticate, createOrdensServicoRouter(httpContext.ordemServicoController));
+  app.use("/ordens-servico", authenticate, createSagaRouter(new PrismaSagaStatusQuery(prisma), failureSimulator));
   app.use("/orcamentos", authenticate, createOrcamentosRouter(httpContext.orcamentoController));
   app.use("/metricas", authenticate, createMetricasRouter(httpContext.metricaController));
 

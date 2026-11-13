@@ -152,7 +152,7 @@ jobs:
       - name: Configure cluster and render manifests
         run: |
           aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$AWS_REGION"
-          sed -i "s/oficina-env/oficina-${{ env.DEPLOY_ENV }}/g; s/ENVIRONMENT/${{ env.DEPLOY_ENV }}/g; s/AWS_ACCOUNT_ID/${{ vars.AWS_ACCOUNT_ID }}/g; s/IMAGE_TAG/${IMAGE_TAG}/g; s|CORS_ORIGIN: \"CORS_ORIGIN\"|CORS_ORIGIN: \"${{ vars.CORS_ORIGIN }}\"|g" cloud-infra/k8s/*.yaml
+          sed -i "s/oficina-env/oficina-${{ env.DEPLOY_ENV }}/g; s/ENVIRONMENT/${{ env.DEPLOY_ENV }}/g; s/AWS_ACCOUNT_ID/${{ vars.AWS_ACCOUNT_ID }}/g; s/IMAGE_TAG/${IMAGE_TAG}/g; s|CORS_ORIGIN: \"CORS_ORIGIN\"|CORS_ORIGIN: \"${{ vars.CORS_ORIGIN }}\"|g; s|SAGA_ENABLED: \"SAGA_ENABLED\"|SAGA_ENABLED: \"${{ vars.SAGA_ENABLED }}\"|g; s|OS_EVENTS_QUEUE_URL: \"OS_EVENTS_QUEUE_URL\"|OS_EVENTS_QUEUE_URL: \"${{ vars.OS_EVENTS_QUEUE_URL }}\"|g; s|BILLING_COMMAND_QUEUE_URL: \"BILLING_COMMAND_QUEUE_URL\"|BILLING_COMMAND_QUEUE_URL: \"${{ vars.BILLING_COMMAND_QUEUE_URL }}\"|g; s|EXECUTION_COMMAND_QUEUE_URL: \"EXECUTION_COMMAND_QUEUE_URL\"|EXECUTION_COMMAND_QUEUE_URL: \"${{ vars.EXECUTION_COMMAND_QUEUE_URL }}\"|g" cloud-infra/k8s/*.yaml
       - name: Run controlled migration
         shell: bash
         run: |
@@ -183,6 +183,12 @@ jobs:
             --namespace kube-system --timeout=5m
           kubectl apply -f cloud-infra/k8s/cluster-secret-store.yaml
           kubectl apply -f cloud-infra/k8s/namespace.yaml
+          kubectl create secret generic oficina-api-aws-session \
+            --namespace "oficina-${{ env.DEPLOY_ENV }}" \
+            --from-literal=AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
+            --from-literal=AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
+            --from-literal=AWS_SESSION_TOKEN="$AWS_SESSION_TOKEN" \
+            --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f cloud-infra/k8s/configmap.yaml -f cloud-infra/k8s/secret.yaml
           if ! kubectl wait --for=condition=Ready \
             externalsecret/oficina-api-secrets \
@@ -203,6 +209,10 @@ jobs:
       - name: Deploy and verify rollout
         run: |
           kubectl apply -f cloud-infra/k8s/api.yaml -f cloud-infra/k8s/api-pdb.yaml -f cloud-infra/k8s/hpa.yaml
+          # A nova sessão do AWS Academy pode atualizar apenas Secrets/ConfigMaps,
+          # mantendo o template do Deployment igual. Reiniciar cria uma nova
+          # geração e limpa um ProgressDeadlineExceeded herdado do rollout anterior.
+          kubectl rollout restart deployment/oficina-api -n "oficina-${{ env.DEPLOY_ENV }}"
           kubectl rollout status deployment/oficina-api -n "oficina-${{ env.DEPLOY_ENV }}" --timeout=5m
           kubectl get deployment,pods,hpa -n "oficina-${{ env.DEPLOY_ENV }}" -o wide
       - name: Seed homologation data

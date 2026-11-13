@@ -9,6 +9,20 @@ const json = (schema: unknown, example?: unknown) => ({
 });
 
 const bearer = [{ bearerAuth: [] }];
+const sagaOrderParameter = [{ name: "numeroOs", in: "path", required: true, schema: { type: "string" }, example: "OS-1794527890365" }];
+
+const authenticatedOrderQuery = (summary: string, description: string, success: string) => ({
+  tags: ["Saga"],
+  security: bearer,
+  summary,
+  description,
+  parameters: sagaOrderParameter,
+  responses: {
+    "200": { description: success },
+    "401": { description: "JWT administrativo ausente ou invalido" },
+    "404": { description: "OS ou Saga nao encontrada" }
+  }
+});
 
 export const openApiDocument = {
   openapi: "3.0.0",
@@ -772,6 +786,27 @@ export const openApiDocument = {
         }
       }
     },
+    "/ordens-servico/{numeroOs}/saga": {
+      get: authenticatedOrderQuery(
+        "Consulta a evidência de execução da Saga da OS",
+        "Retorna estado técnico, etapa atual, correlationId e timestamps sem expor payloads ou segredos.",
+        "Estado atual da Saga, incluindo COMPLETED, COMPENSATED ou FAILED"
+      )
+    },
+    "/ordens-servico/{numeroOs}/saga/simulate-execution-failure": {
+      post: {
+        tags: ["Saga"],
+        security: bearer,
+        summary: "Dispara uma falha controlada de execução exclusivamente em homologação",
+        description: "Injeta ExecutionFailed no orquestrador. CancelExecution e CancelQuoteApproval continuam sendo processados de forma assíncrona pelos microsserviços reais.",
+        parameters: sagaOrderParameter,
+        responses: {
+          "202": { description: "Falha aceita; acompanhe a compensação em GET /ordens-servico/{numeroOs}/saga" },
+          "404": { description: "Simulação desabilitada, OS ou Saga inexistente" },
+          "422": { description: "Saga não está em IN_EXECUTION" }
+        }
+      }
+    },
     "/ordens-servico/{numeroOs}/historico": {
       get: {
         tags: ["Atendimento"],
@@ -827,6 +862,7 @@ export const openApiDocument = {
         tags: ["Atendimento"],
         security: bearer,
         summary: "Finaliza servico",
+        description: "No fluxo distribuido, solicita de forma idempotente a conclusao ao Execution Service. O evento ExecutionCompleted atualiza a OS e dispara a cobranca; no modo legado, finaliza sincronamente.",
         parameters: [{ name: "numeroOs", in: "path", required: true, schema: { type: "string" }, example: "OS-SEED-005" }],
         responses: { "200": { description: "OK" } }
       }
@@ -885,6 +921,36 @@ export const openApiDocument = {
           "200": { description: "Decisao registrada na OS e no orcamento" },
           "404": { description: "Orcamento nao encontrado" },
           "422": { description: "Orcamento nao esta pendente" }
+        }
+      }
+    },
+    "/public/billing/budgets/{numeroOs}/decision": {
+      post: {
+        tags: ["Publico"],
+        summary: "Aprova ou rejeita o orçamento no Billing Service",
+        description: "Fachada pública do OS Service. O Billing persiste a decisão e publica QuoteApproved ou QuoteRejected para continuidade ou compensação da Saga.",
+        parameters: [{ name: "numeroOs", in: "path", required: true, schema: { type: "string" }, example: "OS-SEED-003" }],
+        requestBody: json({ type: "object", required: ["decision"], properties: { decision: { type: "string", enum: ["approve", "reject"] } } }, { decision: "approve" }),
+        responses: {
+          "200": { description: "Decisão persistida e evento de domínio publicado" },
+          "400": { description: "Decisão inválida" },
+          "502": { description: "Billing Service indisponível" }
+        }
+      }
+    },
+    "/billing/payments/{numeroOs}/simulate": {
+      post: {
+        tags: ["Saga"],
+        security: bearer,
+        summary: "Simula o resultado do pagamento exclusivamente em homologacao",
+        description: "Endpoint administrativo de evidencia da Saga. So funciona quando o Billing usa o provedor mock e PAYMENT_SIMULATION_ENABLED=true; em producao permanece indisponivel.",
+        parameters: [{ name: "numeroOs", in: "path", required: true, schema: { type: "string" }, example: "OS-1794527890365" }],
+        requestBody: json({ type: "object", required: ["status"], properties: { status: { type: "string", enum: ["approved", "rejected"] } } }, { status: "approved" }),
+        responses: {
+          "200": { description: "Webhook interno processado e evento PaymentConfirmed ou PaymentFailed gravado na outbox" },
+          "401": { description: "JWT administrativo ausente ou invalido" },
+          "404": { description: "Simulacao desabilitada ou pagamento nao encontrado" },
+          "502": { description: "Billing Service indisponivel" }
         }
       }
     },

@@ -15,7 +15,13 @@ const envSchema = z.object({
   JWT_AUDIENCE: z.string().min(1).default("oficina-api"),
   ADMIN_USERNAME: z.string().min(1).default("admin"),
   ADMIN_PASSWORD: z.string().min(1).default("admin"),
-  CORS_ORIGIN: z.string().min(1).default("*")
+  CORS_ORIGIN: z.string().min(1).default("*"),
+  SAGA_ENABLED: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
+  OS_EVENTS_QUEUE_URL: z.string().url().optional(),
+  BILLING_COMMAND_QUEUE_URL: z.string().url().optional(),
+  BILLING_SERVICE_URL: z.string().url().default("http://oficina-billing-service.oficina-billing.svc.cluster.local"),
+  EXECUTION_COMMAND_QUEUE_URL: z.string().url().optional(),
+  DD_ENV: z.string().default("local")
 });
 
 export type Env = {
@@ -29,6 +35,12 @@ export type Env = {
   adminUsername: string;
   adminPassword: string;
   corsOrigin: string;
+  sagaEnabled: boolean;
+  osEventsQueueUrl?: string;
+  billingCommandQueueUrl?: string;
+  billingServiceUrl: string;
+  executionCommandQueueUrl?: string;
+  sagaSimulationEnabled: boolean;
 };
 
 export function loadEnv(): Env {
@@ -44,6 +56,12 @@ export function loadEnv(): Env {
     jwtAudience: env.JWT_AUDIENCE,
     adminUsername: env.ADMIN_USERNAME,
     adminPassword: env.ADMIN_PASSWORD,
-    corsOrigin: env.CORS_ORIGIN
+    corsOrigin: env.CORS_ORIGIN,
+    sagaEnabled: env.SAGA_ENABLED,
+    osEventsQueueUrl: env.OS_EVENTS_QUEUE_URL,
+    billingCommandQueueUrl: env.BILLING_COMMAND_QUEUE_URL,
+    billingServiceUrl: env.BILLING_SERVICE_URL,
+    executionCommandQueueUrl: env.EXECUTION_COMMAND_QUEUE_URL,
+    sagaSimulationEnabled: env.DD_ENV === "hml"
   };
 }

@@ -73,6 +73,12 @@ Repositórios relacionados: [autenticação](https://github.com/maypinheiro/ofic
 
 Node.js 22, TypeScript, Express, Prisma, PostgreSQL, Jest, ESLint, Swagger/OpenAPI, Docker, Kubernetes, Datadog e GitHub Actions.
 
+### Runtime da Saga
+
+Em `hml`, `SAGA_ENABLED=true` ativa dois processos no OS Service: o publicador transacional da outbox envia comandos diretamente às filas de Billing e Execution, e o consumidor da fila do OS recebe os eventos publicados no tópico SNS. Os envelopes preservam `messageId`, `sagaId`, `correlationId` e `causationId`; inbox, controle otimista e consumidores idempotentes fornecem semântica *at-least-once* segura.
+
+Variáveis operacionais: `OS_EVENTS_QUEUE_URL`, `BILLING_COMMAND_QUEUE_URL` e `EXECUTION_COMMAND_QUEUE_URL`. Como o Learner Lab atual não fornece OIDC/IRSA nem Pod Identity, o CD materializa a sessão temporária em `oficina-api-aws-session`; em uma conta permanente, essa compatibilidade deve ser substituída por identidade de workload com privilégio mínimo.
+
 ## Execução local
 
 ```bash
@@ -103,6 +109,7 @@ npm audit --audit-level=high
 
 - `/health`, `/docs`, autenticação e `/public/*`: públicos;
 - `/clientes`, `/veiculos`, `/servicos`, `/pecas`, `/estoque`, `/ordens-servico`, `/orcamentos` e `/metricas`: protegidos pelo Gateway;
+- `POST /public/billing/budgets/{numeroOs}/decision`: fachada pública que encaminha a aprovação ou rejeição ao Billing Service, proprietário do orçamento; a resposta gera `QuoteApproved`/`QuoteRejected` e continua a Saga por mensageria.
 - o fluxo administrativo legado permanece separado do JWT de clientes.
 
 Consulte a [matriz completa](docs/fase3/matriz-rotas-permissoes.md) e o Swagger.

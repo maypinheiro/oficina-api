@@ -6,7 +6,7 @@ function run(events: SagaEvent[]): SagaStep {
 
 describe("Saga orquestrada da OS", () => {
   it("conclui o caminho feliz", () => {
-    expect(run(["StartSaga", "QuoteCreated", "QuoteApproved", "ExecutionStarted", "ExecutionCompleted", "PaymentConfirmed"])).toBe("COMPLETED");
+    expect(run(["StartSaga", "QuoteCreated", "QuoteApproved", "ExecutionStarted", "ExecutionCompleted", "PaymentCreated", "PaymentConfirmed"])).toBe("COMPLETED");
   });
 
   it("compensa falha de execucao em ordem reversa", () => {
@@ -21,6 +21,10 @@ describe("Saga orquestrada da OS", () => {
 
   it("falha sem compensacao quando o orcamento nao foi criado", () => {
     expect(run(["StartSaga", "QuoteCreationFailed"])).toBe("FAILED");
+  });
+
+  it("mantem a Saga aguardando quando a cobranca pendente e criada", () => {
+    expect(transitionSaga("WAITING_PAYMENT", "PaymentCreated")).toEqual({ step: "WAITING_PAYMENT" });
   });
 
   it("protege estados terminais e transicoes fora de ordem", () => {

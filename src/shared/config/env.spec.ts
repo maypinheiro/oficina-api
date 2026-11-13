@@ -22,6 +22,12 @@ describe("loadEnv", () => {
     process.env.ADMIN_USERNAME = "admin-user";
     process.env.ADMIN_PASSWORD = "admin-pass";
     process.env.CORS_ORIGIN = "http://localhost:3000";
+    process.env.SAGA_ENABLED = "true";
+    process.env.OS_EVENTS_QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/123/os-events";
+    process.env.BILLING_COMMAND_QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/123/billing";
+    process.env.BILLING_SERVICE_URL = "http://billing.test";
+    process.env.EXECUTION_COMMAND_QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/123/execution";
+    process.env.DD_ENV = "hml";
 
     expect(loadEnv()).toEqual({
       nodeEnv: "test",
@@ -33,7 +39,13 @@ describe("loadEnv", () => {
       jwtAudience: "audience",
       adminUsername: "admin-user",
       adminPassword: "admin-pass",
-      corsOrigin: "http://localhost:3000"
+      corsOrigin: "http://localhost:3000",
+      sagaEnabled: true,
+      osEventsQueueUrl: "https://sqs.us-east-1.amazonaws.com/123/os-events",
+      billingCommandQueueUrl: "https://sqs.us-east-1.amazonaws.com/123/billing",
+      billingServiceUrl: "http://billing.test",
+      executionCommandQueueUrl: "https://sqs.us-east-1.amazonaws.com/123/execution",
+      sagaSimulationEnabled: true
     });
   });
 
@@ -48,6 +60,12 @@ describe("loadEnv", () => {
     delete process.env.ADMIN_USERNAME;
     delete process.env.ADMIN_PASSWORD;
     delete process.env.CORS_ORIGIN;
+    delete process.env.SAGA_ENABLED;
+    delete process.env.OS_EVENTS_QUEUE_URL;
+    delete process.env.BILLING_COMMAND_QUEUE_URL;
+    delete process.env.BILLING_SERVICE_URL;
+    delete process.env.EXECUTION_COMMAND_QUEUE_URL;
+    delete process.env.DD_ENV;
 
     expect(loadEnv()).toEqual({
       nodeEnv: "development",
@@ -59,7 +77,13 @@ describe("loadEnv", () => {
       jwtAudience: "oficina-api",
       adminUsername: "admin",
       adminPassword: "admin",
-      corsOrigin: "*"
+      corsOrigin: "*",
+      sagaEnabled: false,
+      osEventsQueueUrl: undefined,
+      billingCommandQueueUrl: undefined,
+      billingServiceUrl: "http://oficina-billing-service.oficina-billing.svc.cluster.local",
+      executionCommandQueueUrl: undefined,
+      sagaSimulationEnabled: false
     });
   });
 });
