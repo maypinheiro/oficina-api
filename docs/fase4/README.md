@@ -52,6 +52,8 @@ arquitetura e o fluxo transacional antes da extração de código do monólito.
 | CI/CD e Kubernetes | [catálogo de evidências](catalogo-evidencias.md) | pipelines independentes, imagens imutáveis, Deployments, Services, HPA e PDB |
 | Observabilidade | [observabilidade distribuída](fase10-observabilidade-distribuida.md) | dashboard Datadog, monitores e 25 logs correlacionados entre os três serviços |
 | Swagger/OpenAPI | [matriz de conformidade](matriz-conformidade.md) | Swagger do OS e contratos OpenAPI de Billing e Execution |
+| Vídeo de demonstração | [vídeo da Fase 4](https://drive.google.com/file/d/1Rdqxn5T4ZMjmfOuzQWMZcSsvI4G9O0c7/view?usp=drive_link) | fluxo completo, compensação, CI/CD e observabilidade distribuída demonstrados |
+| PDF final | [matriz de conformidade](matriz-conformidade.md) e [catálogo de evidências](catalogo-evidencias.md) | documento final gerado e entregue no portal acadêmico |
 
 ### Repositórios avaliáveis
 
@@ -78,8 +80,12 @@ conformidade](matriz-conformidade.md) para a auditoria requisito a requisito e o
 O provisionamento e a confirmação visual na nova organização Datadog foram
 concluídos em HML. O dashboard da Saga exibe transições, mensageria, latência,
 réplicas e logs dos três serviços; os dois fluxos atuais estão registrados no
-[catálogo de evidências](catalogo-evidencias.md). Restam apenas a gravação do
-vídeo da Fase 4 e a geração do PDF final para o portal.
+[catálogo de evidências](catalogo-evidencias.md). O
+[vídeo da Fase 4](https://drive.google.com/file/d/1Rdqxn5T4ZMjmfOuzQWMZcSsvI4G9O0c7/view?usp=drive_link)
+foi publicado, e o PDF final com a identificação da participante, os links dos
+repositórios, a arquitetura, a estratégia da Saga e as justificativas técnicas
+foi gerado e entregue no portal da faculdade. Assim, os entregáveis finais da
+Fase 4 estão concluídos.
 
 ## Estado da Fase 0
 

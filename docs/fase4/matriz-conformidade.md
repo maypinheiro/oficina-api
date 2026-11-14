@@ -1,6 +1,6 @@
 # Matriz de conformidade — Fase 4
 
-Atualização: 13/11/2026 (`America/Sao_Paulo`). Esta matriz relaciona cada requisito oficial à implementação, à evidência reproduzível e às limitações do AWS Academy Learner Lab.
+Atualização: 14/11/2026 (`America/Sao_Paulo`). Esta matriz relaciona cada requisito oficial à implementação, à evidência reproduzível e às limitações do AWS Academy Learner Lab.
 
 ## Microsserviços e dados
 
@@ -46,11 +46,13 @@ Atualização: 13/11/2026 (`America/Sao_Paulo`). Esta matriz relaciona cada requ
 | Evidência de cobertura | Atendido | Comando `npm run test:coverage`, gates dos workflows e números reproduzidos nesta matriz. |
 | Documentação da arquitetura | Atendido | [Arquitetura final](arquitetura-alvo.md), [Saga](saga-orquestrada.md), RFCs, ADRs e documentação específica nos READMEs. |
 | Swagger ou collection Postman atualizada | Atendido | [Swagger do OS Service](https://1stuihvf8d.execute-api.us-east-1.amazonaws.com/docs/), [OpenAPI do Billing](https://github.com/maypinheiro/oficina-billing-service/blob/main/docs/openapi.yaml) e [OpenAPI do Execution](https://github.com/maypinheiro/oficina-execution-service/blob/main/docs/openapi.yaml). |
-| Vídeo de até 15 minutos | Pendente da Fase 4 | Deve demonstrar fluxo completo, compensação, deploy automatizado e rastreamento distribuído. O vídeo da Fase 3 não substitui este entregável. |
-| PDF final do portal | Pendente de fechamento | Deve reunir participantes, links dos três repositórios, vídeo, arquitetura, estratégia Saga e justificativas. O conteúdo técnico já está organizado neste diretório. |
+| Vídeo de até 15 minutos | Atendido | [Vídeo da demonstração da Fase 4](https://drive.google.com/file/d/1Rdqxn5T4ZMjmfOuzQWMZcSsvI4G9O0c7/view?usp=drive_link), contendo o fluxo completo da OS, a compensação da Saga, a automação de entrega e a observabilidade distribuída. |
+| PDF final do portal | Atendido e entregue | PDF final gerado com nome e RM da participante, links dos repositórios, link do vídeo, diagrama da arquitetura, estratégia da Saga e justificativas da divisão dos serviços e tecnologias. A entrega foi concluída no portal acadêmico em 14/11/2026. |
 
-## Pendências reais para encerramento
+## Encerramento da entrega
 
-1. gravar e publicar o vídeo da Fase 4 em YouTube ou Vimeo;
-2. gerar o PDF final com os links definitivos do vídeo e dos repositórios;
-3. opcionalmente executar Mercado Pago Sandbox se forem disponibilizadas credenciais acadêmicas; o adapter e seus testes já atendem ao contrato técnico.
+Os requisitos e entregáveis obrigatórios da Fase 4 estão concluídos. O vídeo foi
+publicado, o PDF final foi gerado e ambos foram submetidos no portal da
+faculdade. A execução com Mercado Pago Sandbox permanece apenas como evolução
+opcional caso sejam disponibilizadas credenciais acadêmicas; o adapter, a
+idempotência, a validação do webhook e os testes já atendem ao contrato técnico.

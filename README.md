@@ -47,6 +47,9 @@ flowchart LR
 | [Observabilidade distribuída](docs/fase4/fase10-observabilidade-distribuida.md) | logs, métricas, traces, dashboards e alertas |
 | [Matriz de conformidade](docs/fase4/matriz-conformidade.md) | requisito oficial → implementação → evidência |
 | [Catálogo de evidências](docs/fase4/catalogo-evidencias.md) | testes, pipelines, OS/Sagas de HML e links Datadog |
+| [Vídeo da Fase 4](https://drive.google.com/file/d/1Rdqxn5T4ZMjmfOuzQWMZcSsvI4G9O0c7/view?usp=drive_link) | fluxo completo, compensação, deploy automatizado e observabilidade distribuída |
+
+O PDF final da Fase 4 foi gerado e entregue no portal acadêmico em 14/11/2026.
 
 Documentação específica: [Billing Service](https://github.com/maypinheiro/oficina-billing-service#api-e-documentação),
 [Execution Service](https://github.com/maypinheiro/oficina-execution-service#api-e-documentação),
