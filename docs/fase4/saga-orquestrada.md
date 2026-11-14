@@ -37,7 +37,8 @@ sequenceDiagram
   MQ->>OS: QuoteCreated
   OS->>OS: WAITING_APPROVAL
 
-  C->>B: aprova orçamento
+  C->>OS: aprova orçamento pela fachada pública
+  OS->>B: POST decisão no Service interno
   B->>B: confirma aprovação + Outbox
   B->>MQ: QuoteApproved
   MQ->>OS: QuoteApproved
@@ -65,20 +66,27 @@ stateDiagram-v2
   [*] --> OS_CREATED
   OS_CREATED --> WAITING_QUOTE: CreateQuote
   WAITING_QUOTE --> WAITING_APPROVAL: QuoteCreated
-  WAITING_APPROVAL --> QUOTE_APPROVED: QuoteApproved
-  WAITING_APPROVAL --> COMPENSATING: QuoteRejected
-  QUOTE_APPROVED --> EXECUTION_REQUESTED: StartExecution
+  WAITING_APPROVAL --> EXECUTION_REQUESTED: QuoteApproved / StartExecution
+  WAITING_APPROVAL --> COMPENSATING_QUOTE: QuoteRejected / CancelQuote
   EXECUTION_REQUESTED --> IN_EXECUTION: ExecutionStarted
-  IN_EXECUTION --> EXECUTION_COMPLETED: ExecutionCompleted
-  EXECUTION_COMPLETED --> WAITING_PAYMENT: RequestPayment
-  WAITING_PAYMENT --> PAYMENT_CONFIRMED: PaymentConfirmed
-  PAYMENT_CONFIRMED --> COMPLETED
-  COMPENSATING --> COMPENSATED
-  WAITING_QUOTE --> FAILED: retries esgotados sem efeito reversível
+  EXECUTION_REQUESTED --> COMPENSATING_EXECUTION: ExecutionFailed / CancelExecution
+  IN_EXECUTION --> WAITING_PAYMENT: ExecutionCompleted / RequestPayment
+  IN_EXECUTION --> COMPENSATING_EXECUTION: ExecutionFailed / CancelExecution
+  WAITING_PAYMENT --> WAITING_PAYMENT: PaymentCreated
+  WAITING_PAYMENT --> COMPLETED: PaymentConfirmed
+  WAITING_PAYMENT --> FAILED: PaymentFailed
+  COMPENSATING_EXECUTION --> COMPENSATING_QUOTE: ExecutionCancelled / CancelQuoteApproval
+  COMPENSATING_QUOTE --> COMPENSATED: QuoteApprovalCancelled
+  WAITING_QUOTE --> FAILED: QuoteCreationFailed
   COMPLETED --> [*]
   COMPENSATED --> [*]
   FAILED --> [*]
 ```
+
+O diagrama acima corresponde aos estados implementados em
+`src/contexts/saga/application/saga-machine.ts`. Os estados terminais são
+`COMPLETED`, `COMPENSATED` e `FAILED`; eventos incompatíveis com o estado atual
+são rejeitados e não alteram a Saga.
 
 ## Transações locais e eventos
 
