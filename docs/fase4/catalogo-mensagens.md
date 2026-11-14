@@ -80,3 +80,21 @@
 
 Os nomes físicos receberão prefixo de ambiente e projeto. O catálogo descreve
 nomes lógicos e não vincula o domínio a ARNs específicos.
+
+## Escopo implementado e contratos de evolução
+
+Para evitar ambiguidade na avaliação, o catálogo contém tanto o fluxo executado
+quanto comandos compensatórios preparados para cenários posteriores:
+
+| Categoria | Situação atual |
+|---|---|
+| Fluxo HML executado | `CreateQuote`, `QuoteCreated`, `QuoteApproved`, `StartExecution`, `ExecutionStarted`, `CompleteExecution`, `ExecutionCompleted`, `RequestPayment`, `PaymentCreated` e `PaymentConfirmed` |
+| Compensação HML executada | `ExecutionFailed`, `CancelExecution`, `ExecutionCancelled`, `CancelQuoteApproval` e `QuoteApprovalCancelled` |
+| Participante já suporta | `CancelQuote`, `CancelPayment`, `RefundPayment`, `QuoteCancelled`, `PaymentCancelled` e `PaymentRefunded` |
+| Contrato de evolução | `ExecutionProgressed`; será emitido quando apontamentos intermediários forem expostos |
+
+O cenário controlado de falha de HML gera `ExecutionFailed` no orquestrador para
+comprovar o rollback de negócio completo. Em operação permanente, mensagens que
+esgotam retry ficam na DLQ e exigem replay/ação operacional; automatizar a
+conversão de DLQ/timeout em `ExecutionFailed` é uma evolução operacional, não um
+acesso ao banco do participante.
