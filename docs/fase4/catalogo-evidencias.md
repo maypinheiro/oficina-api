@@ -1,6 +1,17 @@
 # Catálogo de evidências — Fase 4
 
-Atualização: 13/11/2026 (`America/Sao_Paulo`). Este documento registra identificadores e links que permitem reproduzir ou conferir a implementação. Tokens, senhas, chaves e credenciais temporárias não são evidências e não são armazenados aqui.
+Atualização: 14/11/2026 (`America/Sao_Paulo`). Este documento registra identificadores e links que permitem reproduzir ou conferir a implementação. Tokens, senhas, chaves e credenciais temporárias não são evidências e não são armazenados aqui.
+
+## Entrega final no portal acadêmico
+
+| Entregável | Evidência | Estado |
+|---|---|---|
+| Vídeo de demonstração da Fase 4 | [Google Drive](https://drive.google.com/file/d/1Rdqxn5T4ZMjmfOuzQWMZcSsvI4G9O0c7/view?usp=drive_link) | publicado e submetido |
+| PDF final | Documento com participante, RM, repositórios, vídeo, arquitetura, Saga e justificativas técnicas | gerado e entregue no portal da faculdade em 14/11/2026 |
+
+O PDF foi submetido diretamente no portal acadêmico, portanto não possui URL
+pública de download no GitHub. O registro acima comprova o fechamento do
+entregável sem duplicar no repositório o arquivo destinado ao portal.
 
 ## Ambiente validado
 
