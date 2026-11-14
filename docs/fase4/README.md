@@ -50,11 +50,11 @@ compensação foram executados em HML. Consulte a [matriz de
 conformidade](matriz-conformidade.md) para a auditoria requisito a requisito e o
 [catálogo de evidências](catalogo-evidencias.md) para ordens, correlações e runs.
 
-Restam como atividades de fechamento o apply e a confirmação visual na nova
-organização Datadog, a gravação do vídeo da Fase 4 e a geração do PDF final para
-o portal. A infraestrutura da observabilidade está versionada no
-[PR #77](https://github.com/maypinheiro/oficina-k8s-infra/pull/77) e aguarda
-somente um trio STS válido do AWS Academy para provisionamento.
+O provisionamento e a confirmação visual na nova organização Datadog foram
+concluídos em HML. O dashboard da Saga exibe transições, mensageria, latência,
+réplicas e logs dos três serviços; os dois fluxos atuais estão registrados no
+[catálogo de evidências](catalogo-evidencias.md). Restam apenas a gravação do
+vídeo da Fase 4 e a geração do PDF final para o portal.
 
 ## Estado da Fase 0
 

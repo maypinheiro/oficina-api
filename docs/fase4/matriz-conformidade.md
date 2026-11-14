@@ -36,7 +36,7 @@ Atualização: 13/11/2026 (`America/Sao_Paulo`). Esta matriz relaciona cada requ
 | Pipeline independente de build, testes, qualidade e deploy Kubernetes | Atendido | Cada repositório possui CI e CD. `workflow_run` inicia CD após CI em `homolog`/`main`; `workflow_dispatch` é contingência. |
 | `main` protegida por PR e checagens | Atendido | Proteção aplicada com administração incluída, revisão de PR habilitada, branches atualizadas descartando revisão anterior e checks obrigatórios `validate` (OS) ou `quality` (Billing/Execution). Como o projeto tem uma única participante, a quantidade mínima de aprovações é zero. |
 | Deploy Kubernetes automatizado | Atendido em HML | Imagem imutável, manifests, rollout, probes, recursos, HPA e PDB. Produção é protegida pelo GitHub Environment e não foi executada. |
-| Observabilidade da Fase 3 | Implementada; novo provisionamento pendente | Datadog Agent compartilhado, APM, logs JSON, DogStatsD e IDs de correlação estão configurados. Dashboard e monitores distribuídos estão versionados no [PR #77](https://github.com/maypinheiro/oficina-k8s-infra/pull/77); o apply e a conferência visual aguardam o trio STS atual do AWS Academy. |
+| Observabilidade da Fase 3 | Atendido e validado em HML | Datadog Agent compartilhado, APM, logs JSON, DogStatsD e IDs de correlação estão configurados. Dashboard e monitores distribuídos foram aplicados pela [execução 43528997327](https://github.com/maypinheiro/oficina-k8s-infra/actions/runs/43528997327). A conferência visual confirmou métricas, transições, réplicas e logs dos três microsserviços; a API de logs retornou 25 registros para os dois `correlationId` atuais. |
 
 ## Entregáveis
 
@@ -51,7 +51,6 @@ Atualização: 13/11/2026 (`America/Sao_Paulo`). Esta matriz relaciona cada requ
 
 ## Pendências reais para encerramento
 
-1. atualizar o trio STS, aplicar a observabilidade na nova organização Datadog e registrar evidência visual dos dois fluxos do catálogo;
-2. gravar e publicar o vídeo da Fase 4 em YouTube ou Vimeo;
-3. gerar o PDF final com os links definitivos do vídeo e dos repositórios;
-4. opcionalmente executar Mercado Pago Sandbox se forem disponibilizadas credenciais acadêmicas; o adapter e seus testes já atendem ao contrato técnico.
+1. gravar e publicar o vídeo da Fase 4 em YouTube ou Vimeo;
+2. gerar o PDF final com os links definitivos do vídeo e dos repositórios;
+3. opcionalmente executar Mercado Pago Sandbox se forem disponibilizadas credenciais acadêmicas; o adapter e seus testes já atendem ao contrato técnico.

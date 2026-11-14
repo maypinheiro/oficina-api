@@ -91,6 +91,13 @@ organização e o Terraform publica os links pelo output
 - IDs e consultas para conferência no [catálogo de evidências](catalogo-evidencias.md);
 - a nova organização Datadog está autenticada e suas chaves estão cadastradas no
   Environment `hml`;
-- pendência operacional: aplicar o PR #77 com um trio STS válido do AWS Academy,
-  gerar novamente os dois fluxos e confirmar visualmente logs, spans, métricas,
-  dashboards e monitores antes do aceite final.
+- infraestrutura aplicada com sucesso pela
+  [execução 43528997327](https://github.com/maypinheiro/oficina-k8s-infra/actions/runs/43528997327);
+- dashboard [Saga Distribuída](https://app.datadoghq.com/dashboard/qzn-ptj-zm5)
+  validado visualmente com transições do caminho feliz e da compensação,
+  mensageria de Billing/Execution, réplicas e logs dos três serviços;
+- consulta pela API do Datadog confirmou 25 logs associados aos dois
+  `correlationId` atuais e presença de `oficina-api`,
+  `oficina-billing-service` e `oficina-execution-service`;
+- filas de comandos e DLQs novamente verificadas com zero mensagens disponíveis,
+  em voo ou atrasadas após os testes finais.

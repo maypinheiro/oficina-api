@@ -137,9 +137,12 @@ O CD é disparado automaticamente por `workflow_run` após o CI bem-sucedido de 
 - API Gateway `hml`: <https://1stuihvf8d.execute-api.us-east-1.amazonaws.com>;
 - Swagger `hml`: <https://1stuihvf8d.execute-api.us-east-1.amazonaws.com/docs/>;
 - evidência do fluxo protegido: <https://github.com/maypinheiro/oficina-auth-function/actions/runs/34617351925>.
-- dashboards: API, Kubernetes/HPA, Negócio e Saga Distribuída são criados por
-  Terraform na organização Datadog vigente. Os links definitivos são publicados
-  pelo output `datadog_dashboard_urls` do repositório de infraestrutura; IDs da
-  organização anterior não são reutilizados.
+- dashboards provisionados por Terraform e validados na organização Datadog vigente:
+  [API](https://app.datadoghq.com/dashboard/tvf-tig-7k5),
+  [Kubernetes/HPA](https://app.datadoghq.com/dashboard/s9s-5yb-abz),
+  [Negócio](https://app.datadoghq.com/dashboard/jk8-5k2-e5b) e
+  [Saga Distribuída](https://app.datadoghq.com/dashboard/qzn-ptj-zm5);
+- provisionamento HML comprovado pela
+  [execução 43528997327](https://github.com/maypinheiro/oficina-k8s-infra/actions/runs/43528997327).
 
 O endpoint depende de uma sessão ativa do AWS Academy Learner Lab. Produção está codificada e separada, mas sua criação depende das permissões e do orçamento acadêmico.
