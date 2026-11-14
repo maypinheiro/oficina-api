@@ -37,6 +37,31 @@ arquitetura e o fluxo transacional antes da extração de código do monólito.
 - [RFC-007 — Saga orquestrada](rfc-007-saga-orquestrada.md)
 - [ADRs da Fase 4](adrs/README.md)
 
+## Mapa direto para avaliação dos requisitos
+
+| Requisito obrigatório | Documento principal | Evidência de implementação |
+|---|---|---|
+| Três microsserviços independentes | [arquitetura-alvo](arquitetura-alvo.md) e [RFC-006](rfc-006-divisao-microservicos.md) | repositórios OS, Billing e Execution, cada um com Dockerfile, `infra/`, `k8s/` e workflows |
+| Banco próprio por serviço; SQL e NoSQL | [ownership dos dados](ownership-dados.md) | PostgreSQL OS, PostgreSQL Billing e DynamoDB Execution |
+| REST e mensageria assíncrona | [catálogo de mensagens](catalogo-mensagens.md) | API Gateway/REST nas bordas e SNS/SQS com fila/DLQ por consumidor |
+| Nenhum acesso ao banco de outro serviço | [ownership dos dados](ownership-dados.md) | credenciais, adapters e infraestrutura isolados por repositório |
+| Saga com rollback | [Saga orquestrada](saga-orquestrada.md), [RFC-007](rfc-007-saga-orquestrada.md) | caminho feliz e `ExecutionFailed` até `COMPENSATED` executados em HML |
+| Mercado Pago | [integração de pagamento](fase5-mercado-pago.md) | porta/adapter, webhook assinado, idempotência e mock HML |
+| Testes, BDD e 80% | [BDD da Saga](fase6-bdd-saga.md) | gates `test:coverage` por serviço e cenário Cucumber ponta a ponta |
+| Qualidade no CI | [matriz de conformidade](matriz-conformidade.md) | build, testes, cobertura, auditoria e análise SonarCloud nos PRs |
+| CI/CD e Kubernetes | [catálogo de evidências](catalogo-evidencias.md) | pipelines independentes, imagens imutáveis, Deployments, Services, HPA e PDB |
+| Observabilidade | [observabilidade distribuída](fase10-observabilidade-distribuida.md) | dashboard Datadog, monitores e 25 logs correlacionados entre os três serviços |
+| Swagger/OpenAPI | [matriz de conformidade](matriz-conformidade.md) | Swagger do OS e contratos OpenAPI de Billing e Execution |
+
+### Repositórios avaliáveis
+
+- [OS Service](https://github.com/maypinheiro/oficina-api)
+- [Billing Service](https://github.com/maypinheiro/oficina-billing-service)
+- [Execution Service](https://github.com/maypinheiro/oficina-execution-service)
+- [Infraestrutura Kubernetes e observabilidade](https://github.com/maypinheiro/oficina-k8s-infra)
+- [Infraestrutura do banco do OS](https://github.com/maypinheiro/oficina-database-infra)
+- [Autenticação e API Gateway](https://github.com/maypinheiro/oficina-auth-function)
+
 ## Evolução da implementação
 
 - [Fase 1 — preparação dos repositórios](fase1-preparacao-repositorios.md)

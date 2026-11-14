@@ -12,12 +12,11 @@ ACID e sem acesso cruzado a bancos.
 flowchart TB
   User["Cliente / Funcionário"] --> APIGW["Amazon API Gateway"]
   APIGW --> Auth["Lambda Authorizer"]
-  APIGW --> OSAPI["OS Service API"]
-  APIGW --> BillingAPI["Billing Service API"]
+  Auth -->|"Allow"| VPCL["VPC Link / NLB interno"]
 
   subgraph EKS["Amazon EKS compartilhado"]
-    subgraph NSOS["namespace oficina-os"]
-      OS["OS Service\nOrquestrador da Saga"]
+    subgraph NSOS["namespace oficina-hml / oficina-prod"]
+      OS["OS Service API\nOrquestrador da Saga"]
     end
     subgraph NSB["namespace oficina-billing"]
       Billing["Billing Service"]
@@ -26,6 +25,9 @@ flowchart TB
       Execution["Execution Service"]
     end
   end
+
+  VPCL --> OS
+  OS -->|"REST interno: decisão/simulação"| Billing
 
   OS --> OSDB[("PostgreSQL OS")]
   Billing --> BillingDB[("PostgreSQL Billing")]
@@ -41,11 +43,17 @@ flowchart TB
   BillingQ --> Billing
   ExecutionQ --> Execution
 
-  Billing --> Payment["Mercado Pago / Mock"]
+  Billing --> Payment["Mercado Pago / Mock HML"]
+  Payment -->|"webhook assinado no modo real"| Billing
   OS -. logs métricas traces .-> DD["Datadog"]
   Billing -. logs métricas traces .-> DD
   Execution -. logs métricas traces .-> DD
 ```
+
+O API Gateway publica a borda do OS Service. A fachada pública do OS encaminha
+somente as operações humanas que pertencem ao Billing (aprovar/rejeitar e
+simulação acadêmica) para o Service Kubernetes interno. O caminho crítico da
+Saga continua assíncrono. O Execution Service não possui rota pública de escrita.
 
 ## Limites dos serviços
 
@@ -85,24 +93,41 @@ flowchart TB
 | Origem | Destino | Modo | Uso |
 |---|---|---|---|
 | Cliente/funcionário | APIs | REST | comandos humanos e consultas |
+| OS | Billing | REST interno | decisão do orçamento e simulação controlada de HML |
 | OS | Billing/Execution | SQS | comandos da Saga |
 | Billing/Execution | OS | SNS/SQS | eventos de resultado |
 | Provedor de pagamento | Billing | webhook HTTPS | confirmação assíncrona |
 | Serviço | banco próprio | conexão privada | persistência exclusiva |
 
-REST síncrono entre os três serviços não será usado no caminho crítico da Saga.
-Consultas síncronas somente serão introduzidas quando houver justificativa clara,
-timeout, circuit breaker e ausência de dependência transacional.
+REST síncrono não é usado para coordenar as etapas transacionais da Saga. A
+fachada de decisão é uma operação humana curta e não substitui os eventos:
+Billing persiste a decisão e publica `QuoteApproved`/`QuoteRejected`; somente
+então o orquestrador avança. Novas chamadas síncronas exigem timeout, tratamento
+de indisponibilidade e ausência de dependência transacional.
 
 ## Infraestrutura e isolamento
 
-- um EKS compartilhado, sem cluster por serviço;
+- um EKS compartilhado para reduzir custo acadêmico, sem cluster por serviço;
 - namespace, ServiceAccount, IAM, secrets, manifests e pipeline por serviço;
 - filas e DLQs com policies de privilégio mínimo;
 - banco/database/tabela e credencial exclusivos por serviço;
 - nenhuma foreign key, join ou consulta cross-database;
 - HPA independente para APIs/consumidores stateless;
 - Datadog compartilhado com tags `service`, `env` e `version`.
+
+## Independência por repositório
+
+| Serviço/componente | Repositório | Infraestrutura e dado proprietário |
+|---|---|---|
+| OS Service | `maypinheiro/oficina-api` | manifests de workload, mensageria do orquestrador e PostgreSQL OS |
+| Billing Service | `maypinheiro/oficina-billing-service` | RDS PostgreSQL Billing, fila/DLQ, manifests e pipeline próprios |
+| Execution Service | `maypinheiro/oficina-execution-service` | DynamoDB, fila/DLQ, manifests e pipeline próprios |
+| Plataforma | `maypinheiro/oficina-k8s-infra` | VPC, EKS, nodes, Datadog e componentes compartilhados |
+| Autenticação | `maypinheiro/oficina-auth-function` | Lambda, Authorizer, API Gateway e VPC Link |
+
+Compartilhar o cluster não significa compartilhar o ciclo de release: cada
+microsserviço constrói sua imagem, aplica seus manifests, possui HPA/PDB e pode
+ser implantado ou revertido sem publicar os demais.
 
 ## Requisitos de resiliência
 

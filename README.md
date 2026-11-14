@@ -28,12 +28,31 @@ flowchart LR
 
 ## Documentação
 
-- [Fase 4 — mensageria básica, contratos, idempotência e DLQ](docs/fase4/fase3-mensageria-basica.md)
-- [Fase 4 — Saga orquestrada e compensações](docs/fase4/fase4-saga-implementada.md)
-- [Fase 4 — integração Mercado Pago e webhook seguro](docs/fase4/fase5-mercado-pago.md)
-- [Fase 4 — BDD executável do caminho feliz e da compensação](docs/fase4/fase6-bdd-saga.md)
-- [Fase 4 — matriz de conformidade](docs/fase4/matriz-conformidade.md)
-- [Fase 4 — catálogo de evidências](docs/fase4/catalogo-evidencias.md)
+### Entrega da Fase 4
+
+| Documento | O que comprova |
+|---|---|
+| [Índice da Fase 4](docs/fase4/README.md) | ponto de entrada, decisões fechadas e estado da entrega |
+| [Arquitetura final](docs/fase4/arquitetura-alvo.md) | componentes, três serviços, bancos próprios, AWS, Kubernetes e Datadog |
+| [Saga orquestrada](docs/fase4/saga-orquestrada.md) | caminho feliz, máquina de estados e compensações |
+| [Catálogo de mensagens](docs/fase4/catalogo-mensagens.md) | comandos, eventos, envelope, filas e versionamento |
+| [Ownership dos dados](docs/fase4/ownership-dados.md) | proprietário de cada dado e proibição de acesso cross-database |
+| [RFC-006 — divisão dos serviços](docs/fase4/rfc-006-divisao-microservicos.md) | justificativa dos limites de OS, Billing e Execution |
+| [RFC-007 — Saga orquestrada](docs/fase4/rfc-007-saga-orquestrada.md) | escolha da orquestração e alternativas rejeitadas |
+| [ADRs da Fase 4](docs/fase4/adrs/README.md) | decisões permanentes: orquestrador, Outbox, SNS/SQS e DynamoDB |
+| [Mensageria, idempotência e DLQ](docs/fase4/fase3-mensageria-basica.md) | implementação da comunicação assíncrona |
+| [Saga implementada](docs/fase4/fase4-saga-implementada.md) | código, transações locais e fluxo implantado |
+| [Mercado Pago](docs/fase4/fase5-mercado-pago.md) | adapter, webhook, idempotência e modo mock acadêmico |
+| [BDD ponta a ponta](docs/fase4/fase6-bdd-saga.md) | fluxo completo e falha/compensação testados |
+| [Observabilidade distribuída](docs/fase4/fase10-observabilidade-distribuida.md) | logs, métricas, traces, dashboards e alertas |
+| [Matriz de conformidade](docs/fase4/matriz-conformidade.md) | requisito oficial → implementação → evidência |
+| [Catálogo de evidências](docs/fase4/catalogo-evidencias.md) | testes, pipelines, OS/Sagas de HML e links Datadog |
+
+Documentação específica: [Billing Service](https://github.com/maypinheiro/oficina-billing-service#api-e-documentação),
+[Execution Service](https://github.com/maypinheiro/oficina-execution-service#api-e-documentação),
+[plataforma EKS](https://github.com/maypinheiro/oficina-k8s-infra#documentação),
+[banco OS](https://github.com/maypinheiro/oficina-database-infra#documentação) e
+[autenticação](https://github.com/maypinheiro/oficina-auth-function#documentação).
 
 ### Entrega da Fase 3
 
